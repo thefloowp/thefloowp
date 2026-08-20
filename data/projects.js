@@ -2,30 +2,30 @@ export const projects = [
   {
     slug: "crysalis-growth",
     number: "01",
-    client: "CRYSALIS",
-    title: "Building a stronger lifestyle brand system",
-    category: "Brand · Creative · E-Commerce",
+    client: "NOVA STUDIO",
+    title: "Building a brand system designed to scale",
+    category: "Brand · Creative · Digital",
     services: [
       "Creative Direction",
+      "Brand Strategy",
       "Campaign Strategy",
-      "E-Commerce",
       "Content Systems",
     ],
     team: ["francesca-navarro", "alex-rivera"],
     summary:
-      "A connected brand and commerce approach designed to make product launches clearer, stronger, and easier to scale across channels.",
+      "A connected brand system designed to create a clearer identity, stronger communication, and a more scalable creative foundation.",
     challenge:
-      "Create a more cohesive brand experience while supporting fast-moving product launches, content production, and e-commerce execution.",
+      "Build a cohesive brand direction that could remain consistent while adapting across campaigns, digital platforms, and future growth.",
     response:
-      "Floowp connected creative direction, campaign planning, content systems, and e-commerce execution into one repeatable growth loop.",
+      "Floowp developed a connected approach across strategy, creative direction, visual communication, and repeatable content systems.",
     result:
-      "A clearer visual system, stronger launch consistency, and a more scalable framework for ongoing brand activity.",
+      "A clearer brand foundation with a flexible system designed to support ongoing campaigns and future expansion.",
   },
   {
     slug: "scrubz-shield",
     number: "02",
-    client: "SCRUBZ",
-    title: "Turning product education into campaign attention",
+    client: "FORME",
+    title: "Turning a simple idea into campaign attention",
     category: "Campaign · Content · Social",
     services: [
       "Campaign Strategy",
@@ -35,35 +35,35 @@ export const projects = [
     ],
     team: ["francesca-navarro", "sam-lee"],
     summary:
-      "A rainy-season content direction combining product education, social interaction, and visual storytelling.",
+      "A social-first campaign direction built around strong visual storytelling, clear communication, and audience interaction.",
     challenge:
-      "Communicate functional product value while keeping the campaign engaging enough for social media discovery.",
+      "Translate a straightforward product or service message into content that feels relevant, engaging, and native to digital platforms.",
     response:
-      "Floowp developed interactive content concepts, visual-search formats, product-led storytelling, and platform-ready creative.",
+      "Floowp developed a campaign system combining visual storytelling, interactive formats, creative direction, and platform-ready content.",
     result:
-      "A campaign direction that turns education into participation rather than relying on hard-selling product communication.",
+      "A more engaging campaign framework designed to turn passive viewing into stronger audience attention and interaction.",
   },
   {
     slug: "quencha-kids",
     number: "03",
-    client: "QUENCHA",
+    client: "KIN",
     title: "Making everyday products feel launch-worthy",
     category: "Launch · Creative · Commerce",
     services: [
       "Product Launch",
       "Creative Direction",
       "Content",
-      "Marketplace Execution",
+      "Digital Commerce",
     ],
     team: ["alex-rivera", "sam-lee"],
     summary:
-      "A product launch framework designed to make functional kids' essentials feel cohesive, useful, and visually distinct.",
+      "A launch framework designed to transform an everyday product into a clearer, more cohesive, and more compelling brand experience.",
     challenge:
-      "Build a launch story that balances product function, parent relevance, visual consistency, and marketplace conversion.",
+      "Develop a launch story that could communicate practical value while still feeling visually distinctive and campaign-ready.",
     response:
-      "Floowp translated product features into campaign stories, creative assets, and e-commerce-ready communication.",
+      "Floowp connected product positioning, creative direction, launch communication, and digital execution into one cohesive system.",
     result:
-      "A clearer launch structure connecting brand storytelling with practical product communication.",
+      "A clearer launch direction that connects brand storytelling with practical communication and commercial objectives.",
   },
 ];
 

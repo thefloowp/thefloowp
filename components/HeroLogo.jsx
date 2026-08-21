@@ -94,19 +94,19 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together at a slower cinematic pace */
-          15.5% {
+          /* all outlines trace together, slower */
+          23.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* brief overlap while the full logo starts filling */
-          18.0% {
+          /* keep outline visible while the full logo begins filling immediately */
+          26.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          19.4% {
+          27.8% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -123,19 +123,19 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together at a slower cinematic pace */
-          15.5% {
+          /* all outlines trace together, slower */
+          23.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* brief overlap while the full logo starts filling */
-          18.0% {
+          /* keep outline visible while the full logo begins filling immediately */
+          26.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          19.4% {
+          27.8% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -152,19 +152,19 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together at a slower cinematic pace */
-          15.5% {
+          /* all outlines trace together, slower */
+          23.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* brief overlap while the full logo starts filling */
-          18.0% {
+          /* keep outline visible while the full logo begins filling immediately */
+          26.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          19.4% {
+          27.8% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -181,19 +181,19 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together at a slower cinematic pace */
-          15.5% {
+          /* all outlines trace together, slower */
+          23.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* brief overlap while the full logo starts filling */
-          18.0% {
+          /* keep outline visible while the full logo begins filling immediately */
+          26.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          19.4% {
+          27.8% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -205,17 +205,17 @@ export default function HeroLogo() {
         }
 
         @keyframes fullLogoFillLoop {
-          0%, 15.4% {
+          0%, 23.49% {
             opacity: 0;
           }
 
-          /* start immediately when the slower trace finishes */
-          15.5% {
+          /* no gap: begin exactly when all outline traces finish */
+          23.5% {
             opacity: 0;
           }
 
-          /* smooth full-logo reveal */
-          18.8% {
+          /* smooth but quick unified full-logo reveal */
+          27.0% {
             opacity: 1;
           }
 
@@ -225,35 +225,35 @@ export default function HeroLogo() {
         }
 
         @keyframes logoFrontBackLoop {
-          0%, 21% {
+          0%, 29% {
             transform: translateZ(0) scale(1);
           }
 
-          26% {
+          34% {
             transform: translateZ(0) scale(1.004);
           }
 
           /* front-back movement 1 */
-          40% {
+          47% {
             transform: translateZ(0) scale(1.018);
           }
-          51% {
+          57% {
             transform: translateZ(0) scale(.997);
           }
 
           /* front-back movement 2 */
-          63% {
+          68% {
             transform: translateZ(0) scale(1.016);
           }
-          74% {
+          78% {
             transform: translateZ(0) scale(.998);
           }
 
           /* front-back movement 3 */
-          86% {
+          88% {
             transform: translateZ(0) scale(1.014);
           }
-          94% {
+          95% {
             transform: translateZ(0) scale(1);
           }
 

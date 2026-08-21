@@ -100,13 +100,14 @@ export default function HeroLogo() {
             stroke-dashoffset: 0;
           }
 
-          /* keep outline visible while the full logo begins filling immediately */
-          26.2% {
+          /* stay visible during the overlapping fill */
+          25.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          27.8% {
+          /* fade away as the full logo reaches solid white */
+          27.0% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -129,13 +130,14 @@ export default function HeroLogo() {
             stroke-dashoffset: 0;
           }
 
-          /* keep outline visible while the full logo begins filling immediately */
-          26.2% {
+          /* stay visible during the overlapping fill */
+          25.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          27.8% {
+          /* fade away as the full logo reaches solid white */
+          27.0% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -158,13 +160,14 @@ export default function HeroLogo() {
             stroke-dashoffset: 0;
           }
 
-          /* keep outline visible while the full logo begins filling immediately */
-          26.2% {
+          /* stay visible during the overlapping fill */
+          25.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          27.8% {
+          /* fade away as the full logo reaches solid white */
+          27.0% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -187,13 +190,14 @@ export default function HeroLogo() {
             stroke-dashoffset: 0;
           }
 
-          /* keep outline visible while the full logo begins filling immediately */
-          26.2% {
+          /* stay visible during the overlapping fill */
+          25.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          27.8% {
+          /* fade away as the full logo reaches solid white */
+          27.0% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -205,16 +209,27 @@ export default function HeroLogo() {
         }
 
         @keyframes fullLogoFillLoop {
-          0%, 23.49% {
+          /* Keep hidden only during the early outline trace */
+          0%, 17.5% {
             opacity: 0;
           }
 
-          /* no gap: begin exactly when all outline traces finish */
+          /* Start revealing while the outline is still tracing */
+          17.6% {
+            opacity: 0;
+          }
+
+          /* Build up gradually underneath the ongoing outline */
+          21.0% {
+            opacity: 0.42;
+          }
+
+          /* Outline finishes around 23.5%, fill is already mostly visible */
           23.5% {
-            opacity: 0;
+            opacity: 0.72;
           }
 
-          /* smooth but quick unified full-logo reveal */
+          /* Finish the full-logo reveal shortly after */
           27.0% {
             opacity: 1;
           }

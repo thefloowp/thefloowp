@@ -57,19 +57,19 @@ export default function HeroLogo() {
 
         /* trim-path outline draw per letter */
         .outline-f {
-          animation: outlineFTrim 8.4s linear infinite;
+          animation: outlineFTrim 9.6s linear infinite;
         }
 
         .outline-l {
-          animation: outlineLTrim 8.4s linear infinite;
+          animation: outlineLTrim 9.6s linear infinite;
         }
 
         .outline-oo {
-          animation: outlineOOTrim 8.4s linear infinite;
+          animation: outlineOOTrim 9.6s linear infinite;
         }
 
         .outline-wp {
-          animation: outlineWPTrim 8.4s linear infinite;
+          animation: outlineWPTrim 9.6s linear infinite;
         }
 
         .fill {
@@ -83,8 +83,8 @@ export default function HeroLogo() {
           transform-origin: center center;
           transform-box: fill-box;
           animation:
-            fullLogoFillLoop 8.4s linear infinite,
-            logoFrontBackLoop 8.4s cubic-bezier(.45,0,.25,1) infinite;
+            fullLogoFillLoop 9.6s linear infinite,
+            logoFrontBackLoop 9.6s cubic-bezier(.45,0,.25,1) infinite;
           will-change: transform, opacity;
         }
 
@@ -94,19 +94,19 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together and finish quickly */
-          10.5% {
+          /* all outlines trace together at a slower cinematic pace */
+          15.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* brief overlap while full logo starts filling */
-          12.8% {
+          /* brief overlap while the full logo starts filling */
+          18.0% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          14.2% {
+          19.4% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -123,19 +123,19 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together and finish quickly */
-          10.5% {
+          /* all outlines trace together at a slower cinematic pace */
+          15.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* brief overlap while full logo starts filling */
-          12.8% {
+          /* brief overlap while the full logo starts filling */
+          18.0% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          14.2% {
+          19.4% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -152,19 +152,19 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together and finish quickly */
-          10.5% {
+          /* all outlines trace together at a slower cinematic pace */
+          15.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* brief overlap while full logo starts filling */
-          12.8% {
+          /* brief overlap while the full logo starts filling */
+          18.0% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          14.2% {
+          19.4% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -181,19 +181,19 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together and finish quickly */
-          10.5% {
+          /* all outlines trace together at a slower cinematic pace */
+          15.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* brief overlap while full logo starts filling */
-          12.8% {
+          /* brief overlap while the full logo starts filling */
+          18.0% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          14.2% {
+          19.4% {
             opacity: 0;
             stroke-dashoffset: 0;
           }
@@ -205,17 +205,17 @@ export default function HeroLogo() {
         }
 
         @keyframes fullLogoFillLoop {
-          0%, 10.4% {
+          0%, 15.4% {
             opacity: 0;
           }
 
-          /* start instantly after the outline trim finishes */
-          10.5% {
+          /* start immediately when the slower trace finishes */
+          15.5% {
             opacity: 0;
           }
 
-          /* fast but still smooth full-logo fade */
-          13.5% {
+          /* smooth full-logo reveal */
+          18.8% {
             opacity: 1;
           }
 
@@ -225,35 +225,35 @@ export default function HeroLogo() {
         }
 
         @keyframes logoFrontBackLoop {
-          0%, 16% {
+          0%, 21% {
             transform: translateZ(0) scale(1);
           }
 
-          21% {
+          26% {
             transform: translateZ(0) scale(1.004);
           }
 
           /* front-back movement 1 */
-          35% {
+          40% {
             transform: translateZ(0) scale(1.018);
           }
-          46% {
+          51% {
             transform: translateZ(0) scale(.997);
           }
 
           /* front-back movement 2 */
-          59% {
+          63% {
             transform: translateZ(0) scale(1.016);
           }
-          70% {
+          74% {
             transform: translateZ(0) scale(.998);
           }
 
           /* front-back movement 3 */
-          83% {
+          86% {
             transform: translateZ(0) scale(1.014);
           }
-          92% {
+          94% {
             transform: translateZ(0) scale(1);
           }
 

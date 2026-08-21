@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const nav = [
@@ -12,8 +13,15 @@ const nav = [
 export default function Header() {
   return (
     <header className="site-header">
-      <Link className="brand-mark" href="/" aria-label="Floowp home">
-        floowp
+      <Link className="brand-logo" href="/" aria-label="Floowp home">
+        <Image
+          src="/floowp-bk.png"
+          alt="Floowp"
+          width={320}
+          height={90}
+          priority
+          className="brand-logo-image"
+        />
       </Link>
 
       <nav className="main-nav" aria-label="Primary navigation">

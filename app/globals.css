@@ -116,67 +116,64 @@ main {
   stroke-width: 6;
   stroke-linecap: round;
   stroke-linejoin: round;
+  opacity: 1;
+  animation: fadeOutline 0.35s ease 2.65s forwards;
 }
 
 .hero-logo-path {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: drawLogoPath 1.05s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation: drawLogoPath 0.95s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
 
 .hero-logo-path-1 {
-  animation-delay: 0.15s;
+  animation-delay: 0.12s;
 }
 
 .hero-logo-path-2 {
-  animation-delay: 0.45s;
+  animation-delay: 0.38s;
 }
 
 .hero-logo-path-3 {
-  animation-delay: 0.75s;
+  animation-delay: 0.67s;
 }
 
 .hero-logo-path-4 {
-  animation-delay: 1.15s;
+  animation-delay: 0.98s;
 }
 
 .hero-logo-path-5 {
-  animation-delay: 1.48s;
+  animation-delay: 1.28s;
+}
+
+.hero-logo-fill {
+  transform: none;
 }
 
 .hero-logo-fill-path {
   fill: #ffffff;
   opacity: 0;
-  animation: fillLogoPath 0.55s ease forwards;
+  animation: fillLogoPath 0.42s ease forwards;
 }
 
 .hero-logo-fill-path-1 {
-  animation-delay: 1.05s;
+  animation-delay: 1.2s;
 }
 
 .hero-logo-fill-path-2 {
-  animation-delay: 1.35s;
+  animation-delay: 1.45s;
 }
 
 .hero-logo-fill-path-3 {
-  animation-delay: 1.7s;
+  animation-delay: 1.72s;
 }
 
 .hero-logo-fill-path-4 {
-  animation-delay: 2.05s;
+  animation-delay: 2s;
 }
 
 .hero-logo-fill-path-5 {
-  animation-delay: 2.32s;
-}
-
-.hero-logo-fill {
-  transform-origin: center;
-  animation: logoSettle 5.8s ease-in-out 2.9s infinite;
-}
-
-.hero-logo-outline {
-  animation: fadeOutline 0.55s ease 2.75s forwards;
+  animation-delay: 2.25s;
 }
 
 @keyframes drawLogoPath {
@@ -206,17 +203,6 @@ main {
 
   to {
     opacity: 0;
-  }
-}
-
-@keyframes logoSettle {
-  0%,
-  100% {
-    transform: translate3d(-8px, 0, 0);
-  }
-
-  50% {
-    transform: translate3d(8px, -4px, 0);
   }
 }
 
@@ -637,7 +623,6 @@ main {
 @media (prefers-reduced-motion: reduce) {
   .hero-logo-path,
   .hero-logo-fill-path,
-  .hero-logo-fill,
   .hero-logo-outline {
     animation: none;
   }

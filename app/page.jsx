@@ -10,17 +10,41 @@ export default function HomePage() {
   return (
     <>
       <section className="hero">
-        <div className="hero-kicker">Collaborative marketing agency + creative studio</div>
+        <div className="hero-kicker">
+          Collaborative marketing agency + creative studio
+        </div>
 
         <div className="hero-logo-wrap">
-          <Image
-            src="/floowp-wt.png"
-            alt="Floowp"
-            width={2048}
-            height={565}
-            priority
-            className="hero-logo-image"
-          />
+          <div className="hero-logo-stage">
+            <Image
+              src="/floowp-wt.png"
+              alt=""
+              aria-hidden="true"
+              width={2048}
+              height={565}
+              className="hero-logo-ghost hero-logo-ghost-left"
+            />
+
+            <Image
+              src="/floowp-wt.png"
+              alt="Floowp"
+              width={2048}
+              height={565}
+              priority
+              className="hero-logo-image"
+            />
+
+            <Image
+              src="/floowp-wt.png"
+              alt=""
+              aria-hidden="true"
+              width={2048}
+              height={565}
+              className="hero-logo-ghost hero-logo-ghost-right"
+            />
+
+            <span className="hero-logo-scan" aria-hidden="true" />
+          </div>
         </div>
 
         <div className="hero-bottom">

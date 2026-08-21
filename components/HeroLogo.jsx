@@ -170,7 +170,7 @@ export default function HeroLogo() {
             opacity: 0;
           }
 
-          48% {
+          44.5% {
             opacity: 1;
           }
 

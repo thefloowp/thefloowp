@@ -147,7 +147,9 @@ main {
 }
 
 .hero-logo-fill {
-  transform: none;
+  transform-origin: center center;
+  animation: logoDepthPulse 4.2s ease-in-out 2.9s infinite;
+  will-change: transform;
 }
 
 .hero-logo-fill-path {
@@ -203,6 +205,17 @@ main {
 
   to {
     opacity: 0;
+  }
+}
+
+@keyframes logoDepthPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.03);
   }
 }
 
@@ -623,7 +636,8 @@ main {
 @media (prefers-reduced-motion: reduce) {
   .hero-logo-path,
   .hero-logo-fill-path,
-  .hero-logo-outline {
+  .hero-logo-outline,
+  .hero-logo-fill {
     animation: none;
   }
 

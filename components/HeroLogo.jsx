@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 
 export default function HeroLogo() {
@@ -150,6 +152,7 @@ export default function HeroLogo() {
           0% {
             width: 0%;
           }
+
           100% {
             width: 100%;
           }
@@ -160,9 +163,11 @@ export default function HeroLogo() {
             width: 0%;
             opacity: 0;
           }
+
           18% {
             opacity: 0.75;
           }
+
           100% {
             width: 100%;
             opacity: 0;
@@ -180,9 +185,11 @@ export default function HeroLogo() {
             opacity: 0;
             transform: translateX(-120%) skewX(-18deg);
           }
+
           18% {
             opacity: 1;
           }
+
           100% {
             opacity: 0;
             transform: translateX(120%) skewX(-18deg);
@@ -194,12 +201,15 @@ export default function HeroLogo() {
           100% {
             transform: translate3d(0, 0, 0);
           }
+
           25% {
             transform: translate3d(8px, -4px, 0);
           }
+
           50% {
             transform: translate3d(14px, 1px, 0);
           }
+
           75% {
             transform: translate3d(5px, 5px, 0);
           }
@@ -227,14 +237,39 @@ export default function HeroLogo() {
           100% {
             transform: translate3d(0, 0, 0);
           }
+
           25% {
             transform: translate3d(4px, -2px, 0);
           }
+
           50% {
             transform: translate3d(7px, 1px, 0);
           }
+
           75% {
             transform: translate3d(2px, 3px, 0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hero-logo-fill-window,
+          .hero-logo-shimmer-window,
+          .hero-logo-final,
+          .hero-logo-sheen {
+            animation: none;
+          }
+
+          .hero-logo-fill-window {
+            width: 100%;
+          }
+
+          .hero-logo-shimmer-window,
+          .hero-logo-sheen {
+            display: none;
+          }
+
+          .hero-logo-final {
+            opacity: 1;
           }
         }
       `}</style>

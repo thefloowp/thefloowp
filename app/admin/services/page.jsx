@@ -1,12 +1,13 @@
+import Link from "next/link";
 import AdminShell from "@/components/AdminShell";
 
 const serviceGroups = [
-  ["01", "Brand & Strategy", "6 services"],
-  ["02", "Creative", "6 services"],
-  ["03", "Digital & Social", "5 services"],
-  ["04", "Performance & Growth", "6 services"],
-  ["05", "E-Commerce", "6 services"],
-  ["06", "Technology", "6 services"],
+  ["brand-strategy", "01", "Brand & Strategy", "6 services"],
+  ["creative", "02", "Creative", "6 services"],
+  ["digital-social", "03", "Digital & Social", "5 services"],
+  ["performance-growth", "04", "Performance & Growth", "6 services"],
+  ["ecommerce", "05", "E-Commerce", "6 services"],
+  ["technology", "06", "Technology", "6 services"],
 ];
 
 export default function AdminServicesPage() {
@@ -17,15 +18,18 @@ export default function AdminServicesPage() {
     >
       <div className="admin-toolbar">
         <div />
-        <button className="admin-btn admin-btn-primary" type="button">
+        <Link
+          className="admin-btn admin-btn-primary"
+          href="/admin/services/new"
+        >
           + Add Service Group
-        </button>
+        </Link>
       </div>
 
       <section className="admin-panel">
         <div className="admin-list">
-          {serviceGroups.map(([number, name, count]) => (
-            <div className="admin-list-row" key={number}>
+          {serviceGroups.map(([slug, number, name, count]) => (
+            <div className="admin-list-row" key={slug}>
               <div className="admin-service-title">
                 <span>{number}</span>
                 <div>
@@ -35,12 +39,12 @@ export default function AdminServicesPage() {
               </div>
 
               <div className="admin-row-actions">
-                <button className="admin-text-button" type="button">
-                  Reorder
-                </button>
-                <button className="admin-text-button" type="button">
+                <Link
+                  className="admin-text-button"
+                  href={`/admin/services/${slug}`}
+                >
                   Edit →
-                </button>
+                </Link>
               </div>
             </div>
           ))}

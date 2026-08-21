@@ -2,33 +2,44 @@
 
 import Image from "next/image";
 
+const imageStyle = {
+  width: "100%",
+  height: "auto",
+  display: "block",
+  objectFit: "contain",
+  userSelect: "none",
+  pointerEvents: "none",
+};
+
 export default function HeroLogo() {
   return (
-    <div className="hero-logo-wrap">
-      <div className="hero-logo-stage">
-        <div className="hero-logo-reveal" aria-hidden="true">
+    <div className="hero-logo-wrap-new">
+      <div className="hero-logo-stage-new">
+        <div className="hero-logo-reveal-new" aria-hidden="true">
           <Image
             src="/floowp-wt.png"
             alt=""
             width={2048}
             height={565}
-            className="hero-logo-image"
             priority
+            style={imageStyle}
           />
         </div>
 
-        <Image
-          src="/floowp-wt.png"
-          alt="Floowp"
-          width={2048}
-          height={565}
-          className="hero-logo-image hero-logo-final"
-          priority
-        />
+        <div className="hero-logo-final-new">
+          <Image
+            src="/floowp-wt.png"
+            alt="Floowp"
+            width={2048}
+            height={565}
+            priority
+            style={imageStyle}
+          />
+        </div>
       </div>
 
       <style jsx>{`
-        .hero-logo-wrap {
+        .hero-logo-wrap-new {
           flex: 1;
           min-height: 300px;
           width: 100%;
@@ -39,56 +50,59 @@ export default function HeroLogo() {
           overflow: hidden;
         }
 
-        .hero-logo-stage {
+        .hero-logo-stage-new {
           position: relative;
-          width: min(70vw, 940px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          width: min(68vw, 900px);
+          max-width: 100%;
+          aspect-ratio: 2048 / 565;
+          overflow: hidden;
+          flex: 0 0 auto;
         }
 
-        .hero-logo-image {
-          width: 100%;
-          height: auto;
-          display: block;
-          object-fit: contain;
-          user-select: none;
-          pointer-events: none;
-        }
-
-        .hero-logo-reveal {
+        .hero-logo-reveal-new,
+        .hero-logo-final-new {
           position: absolute;
           inset: 0;
+          width: 100%;
+          height: 100%;
+        }
+
+        .hero-logo-reveal-new {
+          z-index: 2;
           overflow: hidden;
           clip-path: inset(0 100% 0 0);
-          animation: logoTrimReveal 1.45s cubic-bezier(0.77, 0, 0.18, 1)
+          animation: logoFilledTrim 1.55s cubic-bezier(0.76, 0, 0.24, 1)
             0.12s forwards;
         }
 
-        .hero-logo-final {
-          position: relative;
+        .hero-logo-final-new {
+          z-index: 3;
           opacity: 0;
           animation:
-            logoFinalIn 0.18s ease 1.48s forwards,
-            logoFloat 7s ease-in-out 1.8s infinite;
+            logoSolidIn 0.12s linear 1.58s forwards,
+            logoDrift 7s ease-in-out 1.85s infinite;
           will-change: transform;
         }
 
-        @keyframes logoTrimReveal {
+        @keyframes logoFilledTrim {
           0% {
             clip-path: inset(0 100% 0 0);
           }
 
-          28% {
-            clip-path: inset(0 72% 0 0);
+          16% {
+            clip-path: inset(0 86% 0 0);
           }
 
-          55% {
+          36% {
+            clip-path: inset(0 67% 0 0);
+          }
+
+          58% {
             clip-path: inset(0 43% 0 0);
           }
 
           78% {
-            clip-path: inset(0 18% 0 0);
+            clip-path: inset(0 20% 0 0);
           }
 
           100% {
@@ -96,62 +110,62 @@ export default function HeroLogo() {
           }
         }
 
-        @keyframes logoFinalIn {
+        @keyframes logoSolidIn {
           to {
             opacity: 1;
           }
         }
 
-        @keyframes logoFloat {
+        @keyframes logoDrift {
           0%,
           100% {
             transform: translate3d(0, 0, 0);
           }
 
           50% {
-            transform: translate3d(8px, -4px, 0);
+            transform: translate3d(6px, -3px, 0);
           }
         }
 
         @media (max-width: 900px) {
-          .hero-logo-wrap {
-            min-height: 220px;
+          .hero-logo-wrap-new {
+            min-height: 210px;
             padding: 20px 0 24px;
           }
 
-          .hero-logo-stage {
-            width: min(86vw, 720px);
+          .hero-logo-stage-new {
+            width: min(84vw, 680px);
           }
 
-          .hero-logo-final {
+          .hero-logo-final-new {
             animation:
-              logoFinalIn 0.18s ease 1.48s forwards,
-              logoFloatMobile 7s ease-in-out 1.8s infinite;
+              logoSolidIn 0.12s linear 1.58s forwards,
+              logoDriftMobile 7s ease-in-out 1.85s infinite;
           }
         }
 
-        @keyframes logoFloatMobile {
+        @keyframes logoDriftMobile {
           0%,
           100% {
             transform: translate3d(0, 0, 0);
           }
 
           50% {
-            transform: translate3d(4px, -2px, 0);
+            transform: translate3d(3px, -2px, 0);
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .hero-logo-reveal,
-          .hero-logo-final {
+          .hero-logo-reveal-new,
+          .hero-logo-final-new {
             animation: none;
           }
 
-          .hero-logo-reveal {
+          .hero-logo-reveal-new {
             clip-path: inset(0 0 0 0);
           }
 
-          .hero-logo-final {
+          .hero-logo-final-new {
             opacity: 1;
           }
         }

@@ -41,15 +41,6 @@ export default function AdminShell({ title, subtitle, children }) {
             <h1>{title}</h1>
             {subtitle ? <p>{subtitle}</p> : null}
           </div>
-
-          <div className="admin-topbar-actions">
-            <button className="admin-btn admin-btn-secondary" type="button">
-              Preview
-            </button>
-            <button className="admin-btn admin-btn-primary" type="button">
-              Save
-            </button>
-          </div>
         </header>
 
         <div className="admin-content">{children}</div>

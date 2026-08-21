@@ -166,11 +166,13 @@ export default function HeroLogo() {
         }
 
         @keyframes fullLogoFillLoop {
-          0%, 42% {
+          /* Stay hidden only while the outline is drawing */
+          0%, 40.8% {
             opacity: 0;
           }
 
-          44.5% {
+          /* Reveal almost immediately as the final outline completes */
+          42.0% {
             opacity: 1;
           }
 

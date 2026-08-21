@@ -1,10 +1,17 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Footer() {
   return (
     <footer className="site-footer">
-      <div>
-        <p className="footer-brand">floowp</p>
+      <div className="footer-brand-wrap">
+        <Image
+          src="/floowp-bk.png"
+          alt="Floowp"
+          width={300}
+          height={84}
+          className="footer-logo-image"
+        />
         <p className="muted">Never Static.</p>
       </div>
 

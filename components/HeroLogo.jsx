@@ -101,7 +101,7 @@ export default function HeroLogo() {
           0%   { stroke-dashoffset: 1; opacity: 1; }
           16%  { stroke-dashoffset: 0; opacity: 1; }
           41%  { stroke-dashoffset: 0; opacity: 1; }
-          45.2%  { stroke-dashoffset: 0; opacity: 0; }
+          42.8%  { stroke-dashoffset: 0; opacity: 0; }
           100% { stroke-dashoffset: 0; opacity: 0; }
         }
 
@@ -109,7 +109,7 @@ export default function HeroLogo() {
           0%, 6%  { stroke-dashoffset: 1; opacity: 1; }
           21%     { stroke-dashoffset: 0; opacity: 1; }
           41%     { stroke-dashoffset: 0; opacity: 1; }
-          45.2%     { stroke-dashoffset: 0; opacity: 0; }
+          42.8%     { stroke-dashoffset: 0; opacity: 0; }
           100%    { stroke-dashoffset: 0; opacity: 0; }
         }
 
@@ -117,7 +117,7 @@ export default function HeroLogo() {
           0%, 12% { stroke-dashoffset: 1; opacity: 1; }
           41%     { stroke-dashoffset: 0; opacity: 1; }
           41%     { stroke-dashoffset: 0; opacity: 1; }
-          45.2%     { stroke-dashoffset: 0; opacity: 0; }
+          42.8%     { stroke-dashoffset: 0; opacity: 0; }
           100%    { stroke-dashoffset: 0; opacity: 0; }
         }
 
@@ -125,7 +125,7 @@ export default function HeroLogo() {
           0%, 18% { stroke-dashoffset: 1; opacity: 1; }
           41%     { stroke-dashoffset: 0; opacity: 1; }
           41%     { stroke-dashoffset: 0; opacity: 1; }
-          45.2%     { stroke-dashoffset: 0; opacity: 0; }
+          42.8%     { stroke-dashoffset: 0; opacity: 0; }
           100%    { stroke-dashoffset: 0; opacity: 0; }
         }
 
@@ -134,18 +134,17 @@ export default function HeroLogo() {
 
 
         @keyframes fullLogoFillLoop {
-          /* Stay hidden while the outline is still drawing */
           0%, 40.9% {
             opacity: 0;
           }
 
-          /* Start the fill immediately after the outline completes */
+          /* begin immediately after the outline completes */
           41.0% {
             opacity: 0;
           }
 
-          /* Gradually reveal the full logo together */
-          46.0% {
+          /* faster smooth full-logo reveal */
+          43.0% {
             opacity: 1;
           }
 
@@ -155,26 +154,25 @@ export default function HeroLogo() {
         }
 
         @keyframes logoFrontBackLoop {
-          /* stay still while the slower outline draws and the full fill reveals */
-          0%, 47% {
+          /* stay still while outline draws and quick fill completes */
+          0%, 44% {
             transform: translateZ(0) scale(1);
           }
 
-          /* very gentle settle forward */
-          51% {
+          48% {
             transform: translateZ(0) scale(1.004);
           }
 
           /* front-back movement 1 */
-          60% {
+          58% {
             transform: translateZ(0) scale(1.018);
           }
-          69% {
+          68% {
             transform: translateZ(0) scale(.997);
           }
 
           /* front-back movement 2 */
-          78% {
+          77% {
             transform: translateZ(0) scale(1.016);
           }
           86% {

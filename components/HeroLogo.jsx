@@ -63,141 +63,157 @@ export default function HeroLogo() {
         }
 
         .outline-f {
-          animation: outlineFLoop 12.8s linear infinite;
+          animation: outlineFLoop 15.6s linear infinite;
         }
 
         .outline-l {
-          animation: outlineLLoop 12.8s linear infinite;
+          animation: outlineLLoop 15.6s linear infinite;
         }
 
         .outline-oo {
-          animation: outlineOOLoop 12.8s linear infinite;
+          animation: outlineOOLoop 15.6s linear infinite;
         }
 
         .outline-wp {
-          animation: outlineWPLoop 12.8s linear infinite;
+          animation: outlineWPLoop 15.6s linear infinite;
         }
 
         .fill {
           fill: #ffffff;
-          opacity: 0;
+          opacity: 1;
         }
 
         .fill-f {
-          animation: fillFLoop 12.8s linear infinite;
+          animation: fillFLoop 15.6s linear infinite;
         }
 
         .fill-l {
-          animation: fillLLoop 12.8s linear infinite;
+          animation: fillLLoop 15.6s linear infinite;
         }
 
         .fill-oo {
-          animation: fillOOLoop 12.8s linear infinite;
+          animation: fillOOLoop 15.6s linear infinite;
         }
 
         .fill-wp {
-          animation: fillWPLoop 12.8s linear infinite;
+          animation: fillWPLoop 15.6s linear infinite;
         }
 
         .fill-layer {
+          opacity: 0;
           transform-origin: center center;
           transform-box: fill-box;
-          animation: logoFrontBackLoop 12.8s cubic-bezier(.45,0,.25,1) infinite;
-          will-change: transform;
+          animation:
+            fullLogoFillLoop 15.6s linear infinite,
+            logoFrontBackLoop 15.6s cubic-bezier(.45,0,.25,1) infinite;
+          will-change: transform, opacity;
         }
 
         @keyframes outlineFLoop {
           0%   { stroke-dashoffset: 1; opacity: 1; }
-          12%  { stroke-dashoffset: 0; opacity: 1; }
-          34%  { stroke-dashoffset: 0; opacity: 1; }
-          39%  { stroke-dashoffset: 0; opacity: 0; }
+          16%  { stroke-dashoffset: 0; opacity: 1; }
+          42%  { stroke-dashoffset: 0; opacity: 1; }
+          47%  { stroke-dashoffset: 0; opacity: 0; }
           100% { stroke-dashoffset: 0; opacity: 0; }
         }
 
         @keyframes outlineLLoop {
           0%, 6%  { stroke-dashoffset: 1; opacity: 1; }
-          16%     { stroke-dashoffset: 0; opacity: 1; }
-          34%     { stroke-dashoffset: 0; opacity: 1; }
-          39%     { stroke-dashoffset: 0; opacity: 0; }
+          21%     { stroke-dashoffset: 0; opacity: 1; }
+          42%     { stroke-dashoffset: 0; opacity: 1; }
+          47%     { stroke-dashoffset: 0; opacity: 0; }
           100%    { stroke-dashoffset: 0; opacity: 0; }
         }
 
         @keyframes outlineOOLoop {
           0%, 12% { stroke-dashoffset: 1; opacity: 1; }
-          26%     { stroke-dashoffset: 0; opacity: 1; }
-          34%     { stroke-dashoffset: 0; opacity: 1; }
-          39%     { stroke-dashoffset: 0; opacity: 0; }
+          41%     { stroke-dashoffset: 0; opacity: 1; }
+          42%     { stroke-dashoffset: 0; opacity: 1; }
+          47%     { stroke-dashoffset: 0; opacity: 0; }
           100%    { stroke-dashoffset: 0; opacity: 0; }
         }
 
         @keyframes outlineWPLoop {
           0%, 18% { stroke-dashoffset: 1; opacity: 1; }
-          33%     { stroke-dashoffset: 0; opacity: 1; }
-          34%     { stroke-dashoffset: 0; opacity: 1; }
-          39%     { stroke-dashoffset: 0; opacity: 0; }
+          41%     { stroke-dashoffset: 0; opacity: 1; }
+          42%     { stroke-dashoffset: 0; opacity: 1; }
+          47%     { stroke-dashoffset: 0; opacity: 0; }
           100%    { stroke-dashoffset: 0; opacity: 0; }
         }
 
         @keyframes fillFLoop {
-          0%, 26% { opacity: 0; }
-          31%     { opacity: 1; }
+          0%, 38% { opacity: 0; }
+          43%     { opacity: 1; }
           100%    { opacity: 1; }
         }
 
         @keyframes fillLLoop {
-          0%, 27.5% { opacity: 0; }
-          32.5%     { opacity: 1; }
+          0%, 39.5% { opacity: 0; }
+          44.5%     { opacity: 1; }
           100%      { opacity: 1; }
         }
 
         @keyframes fillOOLoop {
-          0%, 29% { opacity: 0; }
-          34%     { opacity: 1; }
+          0%, 41% { opacity: 0; }
+          46%     { opacity: 1; }
           100%    { opacity: 1; }
         }
 
         @keyframes fillWPLoop {
-          0%, 30.5% { opacity: 0; }
-          35.5%     { opacity: 1; }
+          0%, 42.5% { opacity: 0; }
+          47.5%     { opacity: 1; }
           100%      { opacity: 1; }
         }
 
+        @keyframes fullLogoFillLoop {
+          0%, 42% {
+            opacity: 0;
+          }
+
+          48% {
+            opacity: 1;
+          }
+
+          100% {
+            opacity: 1;
+          }
+        }
+
         @keyframes logoFrontBackLoop {
-          /* stay still while the outline draws and the fill settles */
-          0%, 40% {
+          /* stay still while the slower outline draws and the fill settles */
+          0%, 50% {
             transform: translateZ(0) scale(1);
           }
 
           /* very gentle settle forward */
-          46% {
+          55% {
             transform: translateZ(0) scale(1.004);
           }
 
           /* front-back movement 1 */
-          56% {
+          64% {
             transform: translateZ(0) scale(1.018);
           }
-          66% {
+          72% {
             transform: translateZ(0) scale(.997);
           }
 
           /* front-back movement 2 */
-          76% {
+          80% {
             transform: translateZ(0) scale(1.016);
           }
-          84% {
+          87% {
             transform: translateZ(0) scale(.998);
           }
 
           /* front-back movement 3 */
-          91% {
+          93% {
             transform: translateZ(0) scale(1.014);
           }
-          97% {
+          98% {
             transform: translateZ(0) scale(1);
           }
 
-          /* short cinematic hold before restarting */
           100% {
             transform: translateZ(0) scale(1);
           }

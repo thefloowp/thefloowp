@@ -63,19 +63,19 @@ export default function HeroLogo() {
         }
 
         .outline-f {
-          animation: outlineFLoop 9.6s linear infinite;
+          animation: outlineFLoop 12.8s linear infinite;
         }
 
         .outline-l {
-          animation: outlineLLoop 9.6s linear infinite;
+          animation: outlineLLoop 12.8s linear infinite;
         }
 
         .outline-oo {
-          animation: outlineOOLoop 9.6s linear infinite;
+          animation: outlineOOLoop 12.8s linear infinite;
         }
 
         .outline-wp {
-          animation: outlineWPLoop 9.6s linear infinite;
+          animation: outlineWPLoop 12.8s linear infinite;
         }
 
         .fill {
@@ -84,25 +84,25 @@ export default function HeroLogo() {
         }
 
         .fill-f {
-          animation: fillFLoop 9.6s linear infinite;
+          animation: fillFLoop 12.8s linear infinite;
         }
 
         .fill-l {
-          animation: fillLLoop 9.6s linear infinite;
+          animation: fillLLoop 12.8s linear infinite;
         }
 
         .fill-oo {
-          animation: fillOOLoop 9.6s linear infinite;
+          animation: fillOOLoop 12.8s linear infinite;
         }
 
         .fill-wp {
-          animation: fillWPLoop 9.6s linear infinite;
+          animation: fillWPLoop 12.8s linear infinite;
         }
 
         .fill-layer {
           transform-origin: center center;
           transform-box: fill-box;
-          animation: logoFrontBackLoop 9.6s cubic-bezier(.45,0,.25,1) infinite;
+          animation: logoFrontBackLoop 12.8s cubic-bezier(.45,0,.25,1) infinite;
           will-change: transform;
         }
 
@@ -164,40 +164,40 @@ export default function HeroLogo() {
 
         @keyframes logoFrontBackLoop {
           /* stay still while the outline draws and the fill settles */
-          0%, 38% {
+          0%, 40% {
             transform: translateZ(0) scale(1);
           }
 
           /* very gentle settle forward */
-          44% {
-            transform: translateZ(0) scale(1.006);
+          46% {
+            transform: translateZ(0) scale(1.004);
           }
 
           /* front-back movement 1 */
-          52% {
-            transform: translateZ(0) scale(1.022);
+          56% {
+            transform: translateZ(0) scale(1.018);
           }
-          60% {
-            transform: translateZ(0) scale(.996);
-          }
-
-          /* front-back movement 2 */
-          68% {
-            transform: translateZ(0) scale(1.020);
-          }
-          76% {
+          66% {
             transform: translateZ(0) scale(.997);
           }
 
-          /* front-back movement 3 */
-          84% {
-            transform: translateZ(0) scale(1.018);
+          /* front-back movement 2 */
+          76% {
+            transform: translateZ(0) scale(1.016);
           }
-          92% {
+          84% {
+            transform: translateZ(0) scale(.998);
+          }
+
+          /* front-back movement 3 */
+          91% {
+            transform: translateZ(0) scale(1.014);
+          }
+          97% {
             transform: translateZ(0) scale(1);
           }
 
-          /* dramatic hold before restarting */
+          /* short cinematic hold before restarting */
           100% {
             transform: translateZ(0) scale(1);
           }

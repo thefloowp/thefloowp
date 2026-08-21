@@ -43,6 +43,13 @@ export default function HeroLogo() {
           overflow: visible;
         }
 
+        /* One full loop:
+           1) outline draw
+           2) exact white fill appears
+           3) front-back motion happens 3 times
+           4) animation restarts from the beginning
+        */
+
         .outline {
           fill: transparent;
           stroke: #ffffff;
@@ -52,30 +59,23 @@ export default function HeroLogo() {
           stroke-dasharray: 1;
           stroke-dashoffset: 1;
           vector-effect: non-scaling-stroke;
+          opacity: 1;
         }
 
         .outline-f {
-          animation:
-            drawOutline .72s cubic-bezier(.65,0,.35,1) .08s forwards,
-            fadeOutline .34s ease 2.62s forwards;
+          animation: outlineFLoop 7.2s linear infinite;
         }
 
         .outline-l {
-          animation:
-            drawOutline .62s cubic-bezier(.65,0,.35,1) .48s forwards,
-            fadeOutline .34s ease 2.62s forwards;
+          animation: outlineLLoop 7.2s linear infinite;
         }
 
         .outline-oo {
-          animation:
-            drawOutline 1.08s cubic-bezier(.60,0,.25,1) .92s forwards,
-            fadeOutline .34s ease 2.62s forwards;
+          animation: outlineOOLoop 7.2s linear infinite;
         }
 
         .outline-wp {
-          animation:
-            drawOutline 1.22s cubic-bezier(.60,0,.25,1) 1.48s forwards,
-            fadeOutline .34s ease 2.62s forwards;
+          animation: outlineWPLoop 7.2s linear infinite;
         }
 
         .fill {
@@ -84,52 +84,123 @@ export default function HeroLogo() {
         }
 
         .fill-f {
-          animation: fillIn .34s cubic-bezier(.16,1,.3,1) 1.98s forwards;
+          animation: fillFLoop 7.2s linear infinite;
         }
 
         .fill-l {
-          animation: fillIn .34s cubic-bezier(.16,1,.3,1) 2.08s forwards;
+          animation: fillLLoop 7.2s linear infinite;
         }
 
         .fill-oo {
-          animation: fillIn .38s cubic-bezier(.16,1,.3,1) 2.18s forwards;
+          animation: fillOOLoop 7.2s linear infinite;
         }
 
         .fill-wp {
-          animation: fillIn .42s cubic-bezier(.16,1,.3,1) 2.28s forwards;
+          animation: fillWPLoop 7.2s linear infinite;
         }
 
         .fill-layer {
           transform-origin: center center;
-          animation:
-            logoSettle .78s cubic-bezier(.16,1,.3,1) 2.30s both,
-            logoFloat 7.5s ease-in-out 3.18s infinite;
+          transform-box: fill-box;
+          animation: logoFrontBackLoop 7.2s ease-in-out infinite;
+          will-change: transform;
         }
 
-        @keyframes drawOutline {
-          from { stroke-dashoffset: 1; }
-          to { stroke-dashoffset: 0; }
+        @keyframes outlineFLoop {
+          0%   { stroke-dashoffset: 1; opacity: 1; }
+          12%  { stroke-dashoffset: 0; opacity: 1; }
+          34%  { stroke-dashoffset: 0; opacity: 1; }
+          39%  { stroke-dashoffset: 0; opacity: 0; }
+          100% { stroke-dashoffset: 0; opacity: 0; }
         }
 
-        @keyframes fillIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+        @keyframes outlineLLoop {
+          0%, 6%  { stroke-dashoffset: 1; opacity: 1; }
+          16%     { stroke-dashoffset: 0; opacity: 1; }
+          34%     { stroke-dashoffset: 0; opacity: 1; }
+          39%     { stroke-dashoffset: 0; opacity: 0; }
+          100%    { stroke-dashoffset: 0; opacity: 0; }
         }
 
-        @keyframes fadeOutline {
-          from { opacity: 1; }
-          to { opacity: 0; }
+        @keyframes outlineOOLoop {
+          0%, 12% { stroke-dashoffset: 1; opacity: 1; }
+          26%     { stroke-dashoffset: 0; opacity: 1; }
+          34%     { stroke-dashoffset: 0; opacity: 1; }
+          39%     { stroke-dashoffset: 0; opacity: 0; }
+          100%    { stroke-dashoffset: 0; opacity: 0; }
         }
 
-        @keyframes logoSettle {
-          0% { transform: scale(.994); }
-          60% { transform: scale(1.004); }
-          100% { transform: scale(1); }
+        @keyframes outlineWPLoop {
+          0%, 18% { stroke-dashoffset: 1; opacity: 1; }
+          33%     { stroke-dashoffset: 0; opacity: 1; }
+          34%     { stroke-dashoffset: 0; opacity: 1; }
+          39%     { stroke-dashoffset: 0; opacity: 0; }
+          100%    { stroke-dashoffset: 0; opacity: 0; }
         }
 
-        @keyframes logoFloat {
-          0%, 100% { transform: translate3d(0,0,0); }
-          50% { transform: translate3d(0,-4px,0); }
+        @keyframes fillFLoop {
+          0%, 26% { opacity: 0; }
+          31%     { opacity: 1; }
+          100%    { opacity: 1; }
+        }
+
+        @keyframes fillLLoop {
+          0%, 27.5% { opacity: 0; }
+          32.5%     { opacity: 1; }
+          100%      { opacity: 1; }
+        }
+
+        @keyframes fillOOLoop {
+          0%, 29% { opacity: 0; }
+          34%     { opacity: 1; }
+          100%    { opacity: 1; }
+        }
+
+        @keyframes fillWPLoop {
+          0%, 30.5% { opacity: 0; }
+          35.5%     { opacity: 1; }
+          100%      { opacity: 1; }
+        }
+
+        @keyframes logoFrontBackLoop {
+          /* hidden / neutral while the logo is drawing */
+          0%, 35% {
+            transform: translateZ(0) scale(1);
+          }
+
+          /* settle */
+          40% {
+            transform: translateZ(0) scale(1.01);
+          }
+
+          /* front-back movement 1 */
+          48% {
+            transform: translateZ(0) scale(1.055);
+          }
+          54% {
+            transform: translateZ(0) scale(1);
+          }
+
+          /* front-back movement 2 */
+          60% {
+            transform: translateZ(0) scale(1.055);
+          }
+          66% {
+            transform: translateZ(0) scale(1);
+          }
+
+          /* front-back movement 3 */
+          72% {
+            transform: translateZ(0) scale(1.055);
+          }
+          78% {
+            transform: translateZ(0) scale(1);
+          }
+
+          /* slight hold before the loop restarts */
+          100% {
+            transform: translateZ(0) scale(1);
+          }
         }
 
         @media (max-width: 900px) {

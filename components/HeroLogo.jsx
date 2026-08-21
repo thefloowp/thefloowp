@@ -53,7 +53,7 @@ export default function HeroLogo() {
         .outline {
           fill: transparent;
           stroke: #ffffff;
-          stroke-width: 4.2;
+          stroke-width: 3.1;
           stroke-linecap: round;
           stroke-linejoin: round;
           stroke-dasharray: 1;
@@ -214,7 +214,7 @@ export default function HeroLogo() {
           }
 
           .outline {
-            stroke-width: 3.4;
+            stroke-width: 2.5;
           }
         }
 

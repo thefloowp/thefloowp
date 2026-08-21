@@ -94,19 +94,18 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together, slower */
+          /* all outlines trace together from the very start */
           23.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* stay visible during the overlapping fill */
+          /* remain briefly over the filling logo */
           25.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* fade away as the full logo reaches solid white */
           27.0% {
             opacity: 0;
             stroke-dashoffset: 0;
@@ -124,19 +123,18 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together, slower */
+          /* all outlines trace together from the very start */
           23.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* stay visible during the overlapping fill */
+          /* remain briefly over the filling logo */
           25.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* fade away as the full logo reaches solid white */
           27.0% {
             opacity: 0;
             stroke-dashoffset: 0;
@@ -154,19 +152,18 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together, slower */
+          /* all outlines trace together from the very start */
           23.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* stay visible during the overlapping fill */
+          /* remain briefly over the filling logo */
           25.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* fade away as the full logo reaches solid white */
           27.0% {
             opacity: 0;
             stroke-dashoffset: 0;
@@ -184,19 +181,18 @@ export default function HeroLogo() {
             stroke-dashoffset: 1;
           }
 
-          /* all outlines trace together, slower */
+          /* all outlines trace together from the very start */
           23.5% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* stay visible during the overlapping fill */
+          /* remain briefly over the filling logo */
           25.2% {
             opacity: 1;
             stroke-dashoffset: 0;
           }
 
-          /* fade away as the full logo reaches solid white */
           27.0% {
             opacity: 0;
             stroke-dashoffset: 0;
@@ -209,28 +205,24 @@ export default function HeroLogo() {
         }
 
         @keyframes fullLogoFillLoop {
-          /* Keep hidden only during the early outline trace */
-          0%, 17.5% {
+          /* outline trace and fill start together */
+          0% {
             opacity: 0;
           }
 
-          /* Start revealing while the outline is still tracing */
-          17.6% {
-            opacity: 0;
+          8% {
+            opacity: 0.18;
           }
 
-          /* Build up gradually underneath the ongoing outline */
-          21.0% {
+          15% {
             opacity: 0.42;
           }
 
-          /* Outline finishes around 23.5%, fill is already mostly visible */
-          23.5% {
-            opacity: 0.72;
+          20% {
+            opacity: 0.68;
           }
 
-          /* Finish the full-logo reveal shortly after */
-          27.0% {
+          27% {
             opacity: 1;
           }
 

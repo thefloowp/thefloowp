@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const navItems = [
   ["Dashboard", "/admin"],
-  ["Task Handover", "/admin/tasks"],
+  ["Work Intake", "/admin/tasks"],
   ["Pages", "/admin/pages"],
   ["Projects", "/admin/projects"],
   ["Team", "/admin/team"],

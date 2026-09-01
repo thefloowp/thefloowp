@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   createTaskHandoverItem,
+  deleteTaskHandoverItem,
   getTaskHandoverItems,
   updateTaskHandoverItem,
 } from "@/lib/taskHandover";
@@ -148,6 +149,31 @@ export async function PATCH(request) {
   } catch (error) {
     return NextResponse.json(
       { error: error.message || "Unable to update project." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request) {
+  if (!(await isAuthorized())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const payload = await request.json();
+
+    if (!payload.id) {
+      return NextResponse.json(
+        { error: "Task ID is required." },
+        { status: 400 }
+      );
+    }
+
+    await deleteTaskHandoverItem(payload.id);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error.message || "Unable to delete project." },
       { status: 500 }
     );
   }

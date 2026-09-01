@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { saveWorkItem } from "@/app/admin/tasks/actions";
 
 const WORK_TYPES = [
   "Branding",
@@ -46,6 +47,8 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
           ? ""
           : String(initialItem.rate_amount),
       attachment_links: initialItem?.attachment_links || "",
+      client_message_text: initialItem?.client_message_text || "",
+      client_message_images: initialItem?.client_message_images || "",
       notes: initialItem?.notes || "",
     }),
     [initialItem]
@@ -84,26 +87,20 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
     setError("");
 
     try {
-      const response = await fetch("/api/admin/tasks", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: initialItem.id,
-          ...form,
-        }),
+      const result = await saveWorkItem({
+        id: initialItem.id,
+        ...form,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error || "Unable to save changes.");
+      if (!result?.ok) {
+        throw new Error(result?.error || "Unable to save changes.");
       }
 
       setSavedForm(form);
       router.replace(`/admin/tasks/${initialItem.id}`);
       router.refresh();
     } catch (err) {
-      setError(err.message || "Unable to save changes.");
+      setError(err?.message || "Unable to save changes.");
     } finally {
       setSaving(false);
     }
@@ -298,6 +295,52 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
           value={form.attachment_links}
           onChange={(value) => update("attachment_links", value)}
         />
+      </div>
+
+      <div className="work-edit-section">
+        <div className="work-edit-section-heading">
+          <p>Actual Client Message</p>
+          <span>
+            Save the client's original message exactly as received. You can add
+            text, image screenshots, or both.
+          </span>
+        </div>
+
+        <div className="client-message-editor">
+          <label className="client-message-text-field">
+            <span>Message text</span>
+            <textarea
+              rows="7"
+              value={form.client_message_text}
+              onChange={(e) => update("client_message_text", e.target.value)}
+              placeholder="Paste the client's actual message here..."
+            />
+          </label>
+
+          <div className="client-message-images">
+            <div className="client-message-images-heading">
+              <div>
+                <strong>Message image(s)</strong>
+                <small>
+                  Add screenshots or image references from the client's message.
+                </small>
+              </div>
+
+              <button
+                type="button"
+                className="small-action"
+                onClick={() => addClientMessageImage(form, update)}
+              >
+                + Add Image
+              </button>
+            </div>
+
+            <ClientMessageImageEditor
+              value={form.client_message_images}
+              onChange={(value) => update("client_message_images", value)}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="work-edit-section">
@@ -709,6 +752,87 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
           text-align: center;
         }
 
+        .client-message-editor {
+          display: grid;
+          gap: 18px;
+        }
+
+        .client-message-text-field {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .client-message-text-field > span {
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .client-message-images {
+          display: grid;
+          gap: 12px;
+        }
+
+        .client-message-images-heading {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .client-message-images-heading > div {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .client-message-images-heading strong {
+          font-size: 12px;
+        }
+
+        .client-message-images-heading small {
+          color: #817b73;
+          font-size: 11px;
+          line-height: 1.4;
+        }
+
+        .client-message-image-list {
+          display: grid;
+          gap: 10px;
+        }
+
+        .client-message-image-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 10px;
+          align-items: end;
+          padding: 12px;
+          border: 1px solid #e0dbd4;
+          border-radius: 12px;
+          background: #faf9f7;
+        }
+
+        .client-message-image-row label {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .client-message-image-row label > span {
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .client-message-image-empty {
+          padding: 16px;
+          border: 1px dashed #d8d4cd;
+          border-radius: 12px;
+          background: #faf9f7;
+          color: #817b73;
+          font-size: 12px;
+          text-align: center;
+        }
+
         .notes-field {
           min-height: 180px;
         }
@@ -841,6 +965,18 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
             grid-template-columns: 1fr;
           }
 
+          .client-message-images-heading {
+            flex-direction: column;
+          }
+
+          .client-message-images-heading .small-action {
+            width: 100%;
+          }
+
+          .client-message-image-row {
+            grid-template-columns: 1fr;
+          }
+
           .attachment-type {
             justify-self: flex-start;
           }
@@ -869,6 +1005,99 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
       `}</style>
     </section>
   );
+}
+
+function ClientMessageImageEditor({ value, onChange }) {
+  const items = parseClientMessageImages(value);
+
+  if (!items.length) {
+    return (
+      <div className="client-message-image-empty">
+        No client-message images added yet.
+      </div>
+    );
+  }
+
+  function updateItem(index, field, nextValue) {
+    onChange(
+      JSON.stringify(
+        items.map((item, itemIndex) =>
+          itemIndex === index ? { ...item, [field]: nextValue } : item
+        )
+      )
+    );
+  }
+
+  function removeItem(index) {
+    onChange(
+      JSON.stringify(items.filter((_, itemIndex) => itemIndex !== index))
+    );
+  }
+
+  return (
+    <div className="client-message-image-list">
+      {items.map((item, index) => (
+        <div className="client-message-image-row" key={item.id || index}>
+          <label>
+            <span>Image URL</span>
+            <input
+              value={item.url || ""}
+              onChange={(e) => updateItem(index, "url", e.target.value)}
+              placeholder="https://..."
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+            />
+          </label>
+
+          <button
+            type="button"
+            className="remove-attachment"
+            onClick={() => removeItem(index)}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function addClientMessageImage(form, update) {
+  const items = parseClientMessageImages(form.client_message_images);
+
+  items.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    url: "",
+  });
+
+  update("client_message_images", JSON.stringify(items));
+}
+
+function parseClientMessageImages(value) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+
+  try {
+    const parsed = JSON.parse(text);
+
+    if (Array.isArray(parsed)) {
+      return parsed.map((item, index) => ({
+        id: item.id || `client-message-${index}`,
+        url: String(item.url || ""),
+      }));
+    }
+  } catch {
+    // Legacy text becomes URL rows below.
+  }
+
+  return text
+    .split(/[\r\n,]+/)
+    .map((url, index) => ({
+      id: `legacy-client-message-${index}`,
+      url: url.trim(),
+    }))
+    .filter((item) => item.url);
 }
 
 function Field({ label, full = false, children }) {

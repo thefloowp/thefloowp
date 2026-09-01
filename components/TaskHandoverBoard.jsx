@@ -45,6 +45,8 @@ export default function TaskHandoverBoard({
     due_date: "",
     turnaround_days: "",
     required_file_type: "",
+    rate_currency: "PHP",
+    rate_amount: "",
     attachment_links: "",
     notes: "",
   };
@@ -101,6 +103,11 @@ export default function TaskHandoverBoard({
           ? ""
           : String(item.turnaround_days),
       required_file_type: item.required_file_type || "",
+      rate_currency: item.rate_currency || "PHP",
+      rate_amount:
+        item.rate_amount === null || item.rate_amount === undefined
+          ? ""
+          : String(item.rate_amount),
       attachment_links: item.attachment_links || "",
       notes: item.notes || "",
     });
@@ -327,6 +334,11 @@ export default function TaskHandoverBoard({
                           label="File type"
                           value={item.required_file_type || "Not specified"}
                         />
+
+                        <Detail
+                          label="Rate"
+                          value={formatRate(item.rate_currency, item.rate_amount)}
+                        />
                       </div>
 
                       {item.notes ? (
@@ -467,6 +479,11 @@ export default function TaskHandoverBoard({
                             : ""}
                           {item.required_file_type
                             ? ` • ${item.required_file_type}`
+                            : ""}
+                          {item.rate_amount !== null &&
+                          item.rate_amount !== undefined &&
+                          item.rate_amount !== ""
+                            ? ` • ${formatRate(item.rate_currency, item.rate_amount)}`
                             : ""}
                         </small>
                       </div>
@@ -722,8 +739,21 @@ export default function TaskHandoverBoard({
           resize: vertical;
         }
 
+        .input-with-prefix,
         .input-with-suffix {
           display: grid;
+          align-items: center;
+          border: 1px solid #d8d4cd;
+          border-radius: 9px;
+          background: #fff;
+          overflow: hidden;
+        }
+
+        .input-with-prefix {
+          grid-template-columns: auto minmax(0, 1fr);
+        }
+
+        .input-with-suffix {
           grid-template-columns: minmax(0, 1fr) auto;
           align-items: center;
           border: 1px solid #d8d4cd;
@@ -732,11 +762,13 @@ export default function TaskHandoverBoard({
           overflow: hidden;
         }
 
+        .input-with-prefix input,
         .input-with-suffix input {
           border: 0;
           border-radius: 0;
         }
 
+        .input-with-prefix span,
         .input-with-suffix span {
           padding: 0 12px;
           color: #77726b;
@@ -1188,6 +1220,32 @@ function ProjectForm({
           />
         </label>
 
+        <label>
+          <span>Rate Currency</span>
+          <select
+            value={form.rate_currency}
+            onChange={(e) => updateField("rate_currency", e.target.value)}
+          >
+            <option value="PHP">PHP (₱)</option>
+            <option value="USD">USD ($)</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Project Rate</span>
+          <div className="input-with-prefix">
+            <span>{form.rate_currency === "USD" ? "$" : "₱"}</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.rate_amount}
+              onChange={(e) => updateField("rate_amount", e.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+        </label>
+
         <label className="form-wide">
           <span>Client Files & References</span>
           <textarea
@@ -1277,6 +1335,25 @@ function getLinks(value) {
     .split(/\r?\n/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function formatRate(currency, amount) {
+  if (amount === null || amount === undefined || amount === "") {
+    return "Not set";
+  }
+
+  const numeric = Number(amount);
+
+  if (!Number.isFinite(numeric)) {
+    return "Not set";
+  }
+
+  return new Intl.NumberFormat(currency === "USD" ? "en-US" : "en-PH", {
+    style: "currency",
+    currency: currency === "USD" ? "USD" : "PHP",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numeric);
 }
 
 function normalizeUrl(value) {

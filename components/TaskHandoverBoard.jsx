@@ -55,6 +55,8 @@ export default function TaskHandoverBoard({
     rate_currency: "PHP",
     rate_amount: "",
     attachment_links: "",
+    client_message_text: "",
+    client_message_images: "",
     notes: "",
   };
 
@@ -992,6 +994,56 @@ export default function TaskHandoverBoard({
           line-height: 1;
         }
 
+        .client-message-builder {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .client-message-builder-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .client-message-builder-heading > div {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .client-message-builder-title {
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .client-message-builder-heading small {
+          color: #8a847d;
+          font-size: 11px;
+          line-height: 1.45;
+        }
+
+        .client-message-image-fields {
+          display: grid;
+          gap: 10px;
+        }
+
+        .client-message-image-field {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 10px;
+          align-items: end;
+          padding: 12px;
+          border: 1px solid #e2ddd6;
+          border-radius: 12px;
+          background: #fff;
+        }
+
+        .client-message-image-field label {
+          min-width: 0;
+        }
+
         .attachment-builder {
           display: flex;
           flex-direction: column;
@@ -1557,6 +1609,18 @@ export default function TaskHandoverBoard({
             gap: 12px;
           }
 
+          .client-message-builder-heading {
+            flex-direction: column;
+          }
+
+          .client-message-builder-heading .attachment-add-button {
+            width: 100%;
+          }
+
+          .client-message-image-field {
+            grid-template-columns: 1fr;
+          }
+
           .deliverable-add-button {
             width: 100%;
           }
@@ -1786,6 +1850,46 @@ function ProjectForm({
           />
         </div>
 
+        <div className="form-wide client-message-builder">
+          <div className="client-message-builder-heading">
+            <div>
+              <span className="client-message-builder-title">
+                Actual Client Message
+              </span>
+              <small>
+                Save the original client message as text, image screenshots, or both.
+              </small>
+            </div>
+
+            <button
+              type="button"
+              className="attachment-add-button"
+              onClick={() => addClientMessageImage(form, updateField)}
+            >
+              + Message Image
+            </button>
+          </div>
+
+          <label>
+            <span>Message text</span>
+            <textarea
+              rows="5"
+              value={form.client_message_text}
+              onChange={(e) =>
+                updateField("client_message_text", e.target.value)
+              }
+              placeholder="Paste the client's exact message here..."
+            />
+          </label>
+
+          <ClientMessageImageFields
+            value={form.client_message_images}
+            onChange={(value) =>
+              updateField("client_message_images", value)
+            }
+          />
+        </div>
+
         <label className="form-wide">
           <span>Requirements & Notes</span>
           <textarea
@@ -1816,6 +1920,95 @@ function ProjectForm({
       </div>
     </form>
   );
+}
+
+function ClientMessageImageFields({ value, onChange }) {
+  const items = parseClientMessageImages(value);
+
+  if (!items.length) {
+    return null;
+  }
+
+  function updateItem(index, nextValue) {
+    onChange(
+      JSON.stringify(
+        items.map((item, itemIndex) =>
+          itemIndex === index ? { ...item, url: nextValue } : item
+        )
+      )
+    );
+  }
+
+  function removeItem(index) {
+    onChange(
+      JSON.stringify(items.filter((_, itemIndex) => itemIndex !== index))
+    );
+  }
+
+  return (
+    <div className="client-message-image-fields">
+      {items.map((item, index) => (
+        <div className="client-message-image-field" key={item.id || index}>
+          <label>
+            <span>Message image {index + 1}</span>
+            <input
+              value={item.url || ""}
+              onChange={(e) => updateItem(index, e.target.value)}
+              placeholder="https://..."
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+            />
+          </label>
+
+          <button
+            type="button"
+            className="attachment-remove-button"
+            onClick={() => removeItem(index)}
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function addClientMessageImage(form, updateField) {
+  const items = parseClientMessageImages(form.client_message_images);
+
+  items.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    url: "",
+  });
+
+  updateField("client_message_images", JSON.stringify(items));
+}
+
+function parseClientMessageImages(value) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+
+  try {
+    const parsed = JSON.parse(text);
+
+    if (Array.isArray(parsed)) {
+      return parsed.map((item, index) => ({
+        id: item.id || `client-message-${index}`,
+        url: String(item.url || ""),
+      }));
+    }
+  } catch {
+    // Legacy values are handled below.
+  }
+
+  return text
+    .split(/[\r\n,]+/)
+    .map((url, index) => ({
+      id: `legacy-client-message-${index}`,
+      url: url.trim(),
+    }))
+    .filter((item) => item.url);
 }
 
 function DeliverableFields({ value, onChange }) {

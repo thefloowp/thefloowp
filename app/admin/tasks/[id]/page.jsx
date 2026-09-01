@@ -78,7 +78,7 @@ export default async function WorkDetailPage({ params }) {
     );
   }
 
-  const links = extractLinks(item.attachment_links);
+  const attachments = parseAttachmentItems(item.attachment_links);
 
   return (
     <AdminShell
@@ -147,19 +147,35 @@ export default async function WorkDetailPage({ params }) {
         <div className="work-detail-section">
           <p className="work-detail-label">Client Files & References</p>
 
-          {links.length ? (
+          {attachments.length ? (
             <div className="work-link-list">
-              {links.map((link, index) => (
+              {attachments.map((attachment, index) => (
                 <a
-                  key={`${link}-${index}`}
+                  key={`${attachment.url}-${index}`}
                   className="work-link-card"
-                  href={link}
+                  href={attachment.url}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
+                  {attachment.type === "image" ? (
+                    <div className="work-link-thumbnail">
+                      <img
+                        src={attachment.url}
+                        alt={attachment.title || `Image ${index + 1}`}
+                      />
+                    </div>
+                  ) : (
+                    <div className="work-link-icon">↗</div>
+                  )}
+
                   <span className="work-link-copy">
-                    <strong>Reference {index + 1}</strong>
-                    <small>{shortenLink(link)}</small>
+                    <strong>
+                      {attachment.title ||
+                        (attachment.type === "image"
+                          ? `Image ${index + 1}`
+                          : `Link ${index + 1}`)}
+                    </strong>
+                    <small>{shortenLink(attachment.url)}</small>
                   </span>
 
                   <span className="work-link-open">Open ↗</span>
@@ -168,7 +184,7 @@ export default async function WorkDetailPage({ params }) {
             </div>
           ) : (
             <p className="work-detail-empty">
-              No attachment or reference links.
+              No client files or references.
             </p>
           )}
         </div>
@@ -311,6 +327,30 @@ export default async function WorkDetailPage({ params }) {
           text-decoration: none;
         }
 
+        .work-link-thumbnail,
+        .work-link-icon {
+          width: 52px;
+          height: 52px;
+          flex: 0 0 52px;
+          border-radius: 10px;
+          overflow: hidden;
+          background: #eeece8;
+        }
+
+        .work-link-thumbnail img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .work-link-icon {
+          display: grid;
+          place-items: center;
+          font-size: 18px;
+          font-weight: 700;
+        }
+
         .work-link-copy {
           min-width: 0;
           display: flex;
@@ -382,25 +422,40 @@ function Detail({ label, value }) {
   );
 }
 
-function extractLinks(value) {
+function parseAttachmentItems(value) {
   const text = String(value || "").trim();
+  if (!text) return [];
 
-  if (!text) {
-    return [];
+  try {
+    const parsed = JSON.parse(text);
+
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map((item) => ({
+          type: item.type === "image" ? "image" : "link",
+          title: String(item.title || ""),
+          url: cleanUrl(item.url),
+        }))
+        .filter((item) => item.url);
+    }
+  } catch {
+    // Legacy text is handled below.
   }
 
-  const matches = text.match(/https?:\/\/[^\s,]+/gi);
+  const matches =
+    text.match(/https?:\/\/[^\s,]+/gi) ||
+    text
+      .split(/[\r\n,]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
 
-  if (matches?.length) {
-    return [...new Set(matches.map(cleanUrl).filter(Boolean))];
-  }
-
-  return text
-    .split(/[\r\n,]+/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .map((item) => cleanUrl(item))
-    .filter(Boolean);
+  return matches
+    .map((url, index) => ({
+      type: "link",
+      title: `Link ${index + 1}`,
+      url: cleanUrl(url),
+    }))
+    .filter((item) => item.url);
 }
 
 function cleanUrl(value) {

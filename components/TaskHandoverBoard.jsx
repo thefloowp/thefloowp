@@ -33,8 +33,10 @@ export default function TaskHandoverBoard({
   const [showCreate, setShowCreate] = useState(false);
   const [acceptingId, setAcceptingId] = useState("");
   const [acceptAs, setAcceptAs] = useState(teamMembers?.[0] || "");
+  const [editingId, setEditingId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
-  const [form, setForm] = useState({
+  const blankForm = {
     title: "",
     description: "",
     work_type: "",
@@ -45,7 +47,10 @@ export default function TaskHandoverBoard({
     required_file_type: "",
     attachment_links: "",
     notes: "",
-  });
+  };
+
+  const [form, setForm] = useState(blankForm);
+  const [editForm, setEditForm] = useState(blankForm);
 
   const openProjects = useMemo(
     () => items.filter((item) => !item.assignee || item.status === "Open"),
@@ -63,8 +68,10 @@ export default function TaskHandoverBoard({
     [items, teamMembers]
   );
 
-  function updateForm(field, value) {
-    setForm((current) => {
+  function updateForm(field, value, isEdit = false) {
+    const setter = isEdit ? setEditForm : setForm;
+
+    setter((current) => {
       const next = { ...current, [field]: value };
 
       if (field === "start_date" || field === "due_date") {
@@ -77,6 +84,25 @@ export default function TaskHandoverBoard({
       }
 
       return next;
+    });
+  }
+
+  function startEdit(item) {
+    setEditingId(item.id);
+    setEditForm({
+      title: item.title || "",
+      description: item.description || "",
+      work_type: item.work_type || "",
+      priority: item.priority || "Normal",
+      start_date: item.start_date || "",
+      due_date: item.due_date || "",
+      turnaround_days:
+        item.turnaround_days === null || item.turnaround_days === undefined
+          ? ""
+          : String(item.turnaround_days),
+      required_file_type: item.required_file_type || "",
+      attachment_links: item.attachment_links || "",
+      notes: item.notes || "",
     });
   }
 
@@ -98,20 +124,7 @@ export default function TaskHandoverBoard({
       }
 
       setItems((current) => [data.item, ...current]);
-
-      setForm({
-        title: "",
-        description: "",
-        work_type: "",
-        priority: "Normal",
-        start_date: todayISO(),
-        due_date: "",
-        turnaround_days: "",
-        required_file_type: "",
-        attachment_links: "",
-        notes: "",
-      });
-
+      setForm(blankForm);
       setShowCreate(false);
     } catch (err) {
       setError(err.message);
@@ -138,10 +151,48 @@ export default function TaskHandoverBoard({
       setItems((current) =>
         current.map((item) => (item.id === id ? data.item : item))
       );
+
+      return data.item;
+    } catch (err) {
+      setError(err.message);
+      return null;
+    } finally {
+      setSavingId("");
+    }
+  }
+
+  async function saveEdit(id) {
+    const updated = await patchItem(id, editForm);
+
+    if (updated) {
+      setEditingId("");
+      setEditForm(blankForm);
+    }
+  }
+
+  async function deleteProject(id) {
+    setDeletingId(id);
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/tasks", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to delete project.");
+      }
+
+      setItems((current) => current.filter((item) => item.id !== id));
+      setEditingId("");
     } catch (err) {
       setError(err.message);
     } finally {
-      setSavingId("");
+      setDeletingId("");
     }
   }
 
@@ -190,147 +241,13 @@ export default function TaskHandoverBoard({
         </div>
 
         {showCreate ? (
-          <form className="new-project-form" onSubmit={createProject}>
-            <div className="form-grid">
-              <label className="form-wide">
-                <span>Project name *</span>
-                <input
-                  value={form.title}
-                  onChange={(e) => updateForm("title", e.target.value)}
-                  placeholder="e.g. September Campaign Key Visuals"
-                  required
-                />
-              </label>
-
-              <label className="form-wide">
-                <span>Project brief / description *</span>
-                <textarea
-                  rows="4"
-                  value={form.description}
-                  onChange={(e) => updateForm("description", e.target.value)}
-                  placeholder="What needs to be done? Include the objective, deliverables, and important context."
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Type of work</span>
-                <select
-                  value={form.work_type}
-                  onChange={(e) => updateForm("work_type", e.target.value)}
-                >
-                  <option value="">Select type</option>
-                  {WORK_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label>
-                <span>Priority</span>
-                <select
-                  value={form.priority}
-                  onChange={(e) => updateForm("priority", e.target.value)}
-                >
-                  <option>Low</option>
-                  <option>Normal</option>
-                  <option>High</option>
-                  <option>Urgent</option>
-                </select>
-              </label>
-
-              <label>
-                <span>Start / request date</span>
-                <input
-                  type="date"
-                  value={form.start_date}
-                  onChange={(e) => updateForm("start_date", e.target.value)}
-                />
-              </label>
-
-              <label>
-                <span>Target / submission date *</span>
-                <input
-                  type="date"
-                  value={form.due_date}
-                  onChange={(e) => updateForm("due_date", e.target.value)}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Turnaround</span>
-                <div className="input-with-suffix">
-                  <input
-                    type="number"
-                    min="0"
-                    value={form.turnaround_days}
-                    onChange={(e) =>
-                      updateForm("turnaround_days", e.target.value)
-                    }
-                    placeholder="0"
-                  />
-                  <span>days</span>
-                </div>
-                <small>
-                  Auto-calculated from the start and submission dates. You can
-                  still edit it.
-                </small>
-              </label>
-
-              <label>
-                <span>Required file type(s)</span>
-                <input
-                  value={form.required_file_type}
-                  onChange={(e) =>
-                    updateForm("required_file_type", e.target.value)
-                  }
-                  placeholder="e.g. AI + PDF + PNG"
-                />
-                <small>
-                  Specify the final deliverable format, editable source, or both.
-                </small>
-              </label>
-
-              <label className="form-wide">
-                <span>Attachments / reference links</span>
-                <textarea
-                  rows="3"
-                  value={form.attachment_links}
-                  onChange={(e) =>
-                    updateForm("attachment_links", e.target.value)
-                  }
-                  placeholder={"Paste Google Drive, Figma, Dropbox, reference, or brief links here.\nOne link per line."}
-                />
-              </label>
-
-              <label className="form-wide">
-                <span>Special instructions / notes</span>
-                <textarea
-                  rows="3"
-                  value={form.notes}
-                  onChange={(e) => updateForm("notes", e.target.value)}
-                  placeholder="Dimensions, platform requirements, naming convention, versions needed, approval notes, etc."
-                />
-              </label>
-            </div>
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => setShowCreate(false)}
-              >
-                Cancel
-              </button>
-
-              <button type="submit" className="primary-button">
-                Add to Open Projects
-              </button>
-            </div>
-          </form>
+          <ProjectForm
+            form={form}
+            updateField={(field, value) => updateForm(field, value)}
+            onSubmit={createProject}
+            onCancel={() => setShowCreate(false)}
+            submitLabel="Add to Open Projects"
+          />
         ) : null}
 
         <div className="open-project-list">
@@ -342,108 +259,151 @@ export default function TaskHandoverBoard({
           ) : (
             openProjects.map((item) => (
               <article className="open-project-card" key={item.id}>
-                <div className="project-main">
-                  <div className="project-topline">
-                    {item.work_type ? (
-                      <span className="work-type">{item.work_type}</span>
-                    ) : null}
-
-                    <span
-                      className={`priority ${String(
-                        item.priority || "Normal"
-                      ).toLowerCase()}`}
-                    >
-                      {item.priority || "Normal"}
-                    </span>
-
-                    <span className="status-pill">Open</span>
-                  </div>
-
-                  <h3>{item.title}</h3>
-
-                  {item.description ? <p>{item.description}</p> : null}
-
-                  <div className="detail-grid">
-                    <Detail
-                      label="Submission"
-                      value={
-                        item.due_date
-                          ? formatDate(item.due_date)
-                          : "No target date"
+                {editingId === item.id ? (
+                  <div className="edit-panel">
+                    <ProjectForm
+                      form={editForm}
+                      updateField={(field, value) =>
+                        updateForm(field, value, true)
                       }
-                    />
-
-                    <Detail
-                      label="Turnaround"
-                      value={
-                        item.turnaround_days !== null &&
-                        item.turnaround_days !== undefined &&
-                        item.turnaround_days !== ""
-                          ? `${item.turnaround_days} day${
-                              Number(item.turnaround_days) === 1 ? "" : "s"
-                            }`
-                          : "Not set"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        saveEdit(item.id);
+                      }}
+                      onCancel={() => setEditingId("")}
+                      submitLabel={
+                        savingId === item.id ? "Saving..." : "Save Changes"
                       }
-                    />
-
-                    <Detail
-                      label="File type"
-                      value={item.required_file_type || "Not specified"}
+                      disabled={savingId === item.id}
                     />
                   </div>
+                ) : (
+                  <>
+                    <div className="project-main">
+                      <div className="project-topline">
+                        {item.work_type ? (
+                          <span className="work-type">{item.work_type}</span>
+                        ) : null}
 
-                  {item.notes ? (
-                    <div className="project-notes">
-                      <strong>Notes</strong>
-                      <span>{item.notes}</span>
-                    </div>
-                  ) : null}
+                        <span
+                          className={`priority ${String(
+                            item.priority || "Normal"
+                          ).toLowerCase()}`}
+                        >
+                          {item.priority || "Normal"}
+                        </span>
 
-                  {getLinks(item.attachment_links).length ? (
-                    <div className="attachment-list">
-                      <strong>Attachments / References</strong>
-                      <div>
-                        {getLinks(item.attachment_links).map((link, index) => (
-                          <a
-                            key={`${link}-${index}`}
-                            href={normalizeUrl(link)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Link {index + 1} ↗
-                          </a>
-                        ))}
+                        <span className="status-pill">Open</span>
                       </div>
+
+                      <h3>{item.title}</h3>
+
+                      {item.description ? <p>{item.description}</p> : null}
+
+                      <div className="detail-grid">
+                        <Detail
+                          label="Submission"
+                          value={
+                            item.due_date
+                              ? formatDate(item.due_date)
+                              : "No target date"
+                          }
+                        />
+
+                        <Detail
+                          label="Turnaround"
+                          value={
+                            item.turnaround_days !== null &&
+                            item.turnaround_days !== undefined &&
+                            item.turnaround_days !== ""
+                              ? `${item.turnaround_days} day${
+                                  Number(item.turnaround_days) === 1 ? "" : "s"
+                                }`
+                              : "Not set"
+                          }
+                        />
+
+                        <Detail
+                          label="File type"
+                          value={item.required_file_type || "Not specified"}
+                        />
+                      </div>
+
+                      {item.notes ? (
+                        <div className="project-notes">
+                          <strong>Notes</strong>
+                          <span>{item.notes}</span>
+                        </div>
+                      ) : null}
+
+                      {getLinks(item.attachment_links).length ? (
+                        <div className="attachment-list">
+                          <strong>Attachments / References</strong>
+                          <div>
+                            {getLinks(item.attachment_links).map(
+                              (link, index) => (
+                                <a
+                                  key={`${link}-${index}`}
+                                  href={normalizeUrl(link)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  Link {index + 1} ↗
+                                </a>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
-                  ) : null}
-                </div>
 
-                <div className="accept-area">
-                  {acceptingId === item.id ? (
-                    <select
-                      value={acceptAs}
-                      onChange={(event) => setAcceptAs(event.target.value)}
-                    >
-                      {(teamMembers || []).map((member) => (
-                        <option key={member} value={member}>
-                          {member}
-                        </option>
-                      ))}
-                    </select>
-                  ) : null}
+                    <div className="accept-area">
+                      <div className="project-actions">
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() => startEdit(item)}
+                        >
+                          Edit
+                        </button>
 
-                  <button
-                    className="primary-button"
-                    disabled={savingId === item.id}
-                    onClick={() => acceptProject(item)}
-                  >
-                    {savingId === item.id
-                      ? "Saving..."
-                      : acceptingId === item.id
-                      ? `Accept as ${acceptAs || "team member"}`
-                      : "Accept Project"}
-                  </button>
-                </div>
+                        <button
+                          type="button"
+                          className="danger-button"
+                          disabled={deletingId === item.id}
+                          onClick={() => deleteProject(item.id)}
+                        >
+                          {deletingId === item.id ? "Deleting..." : "Delete"}
+                        </button>
+                      </div>
+
+                      {acceptingId === item.id ? (
+                        <select
+                          value={acceptAs}
+                          onChange={(event) => setAcceptAs(event.target.value)}
+                        >
+                          {(teamMembers || []).map((member) => (
+                            <option key={member} value={member}>
+                              {member}
+                            </option>
+                          ))}
+                        </select>
+                      ) : null}
+
+                      <button
+                        className="primary-button"
+                        disabled={savingId === item.id}
+                        onClick={() => acceptProject(item)}
+                      >
+                        {savingId === item.id
+                          ? "Saving..."
+                          : acceptingId === item.id
+                          ? `Accept as ${acceptAs || "team member"}`
+                          : "Accept Project"}
+                      </button>
+                    </div>
+                  </>
+                )}
               </article>
             ))
           )}
@@ -532,13 +492,53 @@ export default function TaskHandoverBoard({
                         ))}
                       </select>
 
-                      <button
-                        className="text-button"
-                        disabled={savingId === item.id}
-                        onClick={() => returnToOpen(item)}
-                      >
-                        Return to Open
-                      </button>
+                      <div className="row-actions">
+                        <button
+                          type="button"
+                          className="text-button"
+                          onClick={() => startEdit(item)}
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          className="text-button danger-text"
+                          disabled={deletingId === item.id}
+                          onClick={() => deleteProject(item.id)}
+                        >
+                          {deletingId === item.id ? "Deleting..." : "Delete"}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="text-button"
+                          disabled={savingId === item.id}
+                          onClick={() => returnToOpen(item)}
+                        >
+                          Return to Open
+                        </button>
+                      </div>
+
+                      {editingId === item.id ? (
+                        <div className="person-edit-panel">
+                          <ProjectForm
+                            form={editForm}
+                            updateField={(field, value) =>
+                              updateForm(field, value, true)
+                            }
+                            onSubmit={(event) => {
+                              event.preventDefault();
+                              saveEdit(item.id);
+                            }}
+                            onCancel={() => setEditingId("")}
+                            submitLabel={
+                              savingId === item.id ? "Saving..." : "Save Changes"
+                            }
+                            disabled={savingId === item.id}
+                          />
+                        </div>
+                      ) : null}
                     </div>
                   ))
                 )}
@@ -588,6 +588,7 @@ export default function TaskHandoverBoard({
 
         .primary-button,
         .secondary-button,
+        .danger-button,
         .text-button {
           font: inherit;
           cursor: pointer;
@@ -603,11 +604,17 @@ export default function TaskHandoverBoard({
           white-space: nowrap;
         }
 
-        .secondary-button {
+        .secondary-button,
+        .danger-button {
           border: 1px solid #d7d2ca;
           border-radius: 999px;
           padding: 9px 14px;
           background: #fff;
+        }
+
+        .danger-button {
+          border-color: #e2b8b2;
+          color: #9d2d24;
         }
 
         .text-button {
@@ -618,16 +625,35 @@ export default function TaskHandoverBoard({
           white-space: nowrap;
         }
 
+        .danger-text {
+          color: #9d2d24;
+        }
+
         button:disabled,
         select:disabled {
           opacity: 0.5;
           cursor: wait;
         }
 
-        .new-project-form {
+        .new-project-form,
+        .edit-panel,
+        .person-edit-panel {
           padding: 22px 24px 24px;
-          border-bottom: 1px solid #e4e0da;
           background: #faf9f7;
+        }
+
+        .edit-panel {
+          grid-column: 1 / -1;
+          width: 100%;
+          border: 1px solid #e2ddd6;
+          border-radius: 12px;
+        }
+
+        .person-edit-panel {
+          grid-column: 1 / -1;
+          margin: 10px 0 4px;
+          border: 1px solid #e2ddd6;
+          border-radius: 12px;
         }
 
         .form-grid {
@@ -670,12 +696,6 @@ export default function TaskHandoverBoard({
 
         textarea {
           resize: vertical;
-        }
-
-        input:focus,
-        textarea:focus,
-        select:focus {
-          border-color: #111;
         }
 
         .input-with-suffix {
@@ -847,10 +867,16 @@ export default function TaskHandoverBoard({
         }
 
         .accept-area {
-          min-width: 190px;
+          min-width: 210px;
           display: flex;
           flex-direction: column;
           gap: 8px;
+        }
+
+        .project-actions {
+          display: flex;
+          gap: 8px;
+          justify-content: flex-end;
         }
 
         .person-block {
@@ -903,6 +929,14 @@ export default function TaskHandoverBoard({
 
         .person-project-row:last-child {
           border-bottom: 0;
+        }
+
+        .row-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: flex-end;
+          align-items: center;
         }
 
         .check-wrap {
@@ -982,7 +1016,7 @@ export default function TaskHandoverBoard({
           font-size: 13px;
         }
 
-        @media (max-width: 850px) {
+        @media (max-width: 900px) {
           .handover-section-heading {
             align-items: stretch;
             flex-direction: column;
@@ -1015,12 +1049,160 @@ export default function TaskHandoverBoard({
           }
 
           .status-select,
-          .text-button {
+          .row-actions,
+          .person-edit-panel {
             grid-column: 2;
+          }
+
+          .row-actions {
+            justify-content: flex-start;
           }
         }
       `}</style>
     </div>
+  );
+}
+
+function ProjectForm({
+  form,
+  updateField,
+  onSubmit,
+  onCancel,
+  submitLabel,
+  disabled = false,
+}) {
+  return (
+    <form className="new-project-form" onSubmit={onSubmit}>
+      <div className="form-grid">
+        <label className="form-wide">
+          <span>Project name *</span>
+          <input
+            value={form.title}
+            onChange={(e) => updateField("title", e.target.value)}
+            required
+          />
+        </label>
+
+        <label className="form-wide">
+          <span>Project brief / description *</span>
+          <textarea
+            rows="4"
+            value={form.description}
+            onChange={(e) => updateField("description", e.target.value)}
+            required
+          />
+        </label>
+
+        <label>
+          <span>Type of work</span>
+          <select
+            value={form.work_type}
+            onChange={(e) => updateField("work_type", e.target.value)}
+          >
+            <option value="">Select type</option>
+            {WORK_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span>Priority</span>
+          <select
+            value={form.priority}
+            onChange={(e) => updateField("priority", e.target.value)}
+          >
+            <option>Low</option>
+            <option>Normal</option>
+            <option>High</option>
+            <option>Urgent</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Start / request date</span>
+          <input
+            type="date"
+            value={form.start_date}
+            onChange={(e) => updateField("start_date", e.target.value)}
+          />
+        </label>
+
+        <label>
+          <span>Target / submission date *</span>
+          <input
+            type="date"
+            value={form.due_date}
+            onChange={(e) => updateField("due_date", e.target.value)}
+            required
+          />
+        </label>
+
+        <label>
+          <span>Turnaround</span>
+          <div className="input-with-suffix">
+            <input
+              type="number"
+              min="0"
+              value={form.turnaround_days}
+              onChange={(e) => updateField("turnaround_days", e.target.value)}
+            />
+            <span>days</span>
+          </div>
+        </label>
+
+        <label>
+          <span>Required file type(s)</span>
+          <input
+            value={form.required_file_type}
+            onChange={(e) =>
+              updateField("required_file_type", e.target.value)
+            }
+          />
+        </label>
+
+        <label className="form-wide">
+          <span>Attachments / reference links</span>
+          <textarea
+            rows="3"
+            value={form.attachment_links}
+            onChange={(e) =>
+              updateField("attachment_links", e.target.value)
+            }
+          />
+        </label>
+
+        <label className="form-wide">
+          <span>Special instructions / notes</span>
+          <textarea
+            rows="3"
+            value={form.notes}
+            onChange={(e) => updateField("notes", e.target.value)}
+          />
+        </label>
+      </div>
+
+      <div className="form-actions">
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={onCancel}
+          disabled={disabled}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          className="primary-button"
+          disabled={disabled}
+        >
+          {submitLabel}
+        </button>
+      </div>
+    </form>
   );
 }
 

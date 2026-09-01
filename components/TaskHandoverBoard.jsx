@@ -349,19 +349,23 @@ export default function TaskHandoverBoard({
                         </div>
                       ) : null}
 
-                      {getLinks(item.attachment_links).length ? (
+                      {getAttachments(item.attachment_links).length ? (
                         <div className="attachment-list">
-                          <strong>Attachments / References</strong>
+                          <strong>Client Files & References</strong>
                           <div>
-                            {getLinks(item.attachment_links).map(
-                              (link, index) => (
+                            {getAttachments(item.attachment_links).map(
+                              (attachment, index) => (
                                 <a
-                                  key={`${link}-${index}`}
-                                  href={normalizeUrl(link)}
+                                  key={`${attachment.url}-${index}`}
+                                  href={normalizeUrl(attachment.url)}
                                   target="_blank"
-                                  rel="noreferrer"
+                                  rel="noopener noreferrer"
                                 >
-                                  Link {index + 1} ↗
+                                  {attachment.title ||
+                                    (attachment.type === "image"
+                                      ? `Image ${index + 1}`
+                                      : `Link ${index + 1}`)}{" "}
+                                  ↗
                                 </a>
                               )
                             )}
@@ -822,6 +826,108 @@ export default function TaskHandoverBoard({
           font-weight: 400;
         }
 
+        .attachment-builder {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .attachment-builder-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .attachment-builder-heading > div:first-child {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .attachment-builder-title {
+          font-size: 12px;
+          font-weight: 700;
+          color: #26231f;
+        }
+
+        .attachment-builder-heading small {
+          color: #8a847d;
+          font-size: 11px;
+          line-height: 1.4;
+        }
+
+        .attachment-add-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .attachment-add-button {
+          min-height: 36px;
+          padding: 0 12px;
+          border: 1px solid #d8d4cd;
+          border-radius: 999px;
+          background: #fff;
+          color: #111;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .attachment-fields {
+          display: grid;
+          gap: 10px;
+        }
+
+        .attachment-field-row {
+          display: grid;
+          grid-template-columns: 95px minmax(0, .8fr) minmax(0, 1.2fr) auto;
+          gap: 10px;
+          align-items: end;
+          padding: 12px;
+          border: 1px solid #e2ddd6;
+          border-radius: 12px;
+          background: #fff;
+        }
+
+        .attachment-type-badge {
+          min-height: 42px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 9px;
+          background: #f2f0ec;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: .05em;
+        }
+
+        .attachment-remove-button {
+          width: 42px;
+          height: 42px;
+          display: inline-grid;
+          place-items: center;
+          border: 1px solid #e4c5c0;
+          border-radius: 9px;
+          background: #fffafa;
+          color: #9d2d24;
+          font: inherit;
+          font-size: 18px;
+          cursor: pointer;
+        }
+
+        .attachment-empty {
+          padding: 16px;
+          border: 1px dashed #d8d4cd;
+          border-radius: 12px;
+          color: #8a847d;
+          font-size: 12px;
+          text-align: center;
+        }
+
         .form-actions {
           display: flex;
           justify-content: flex-end;
@@ -1218,6 +1324,18 @@ export default function TaskHandoverBoard({
           .action-icon-button {
             width: 100%;
           }
+
+          .attachment-builder-heading {
+            flex-direction: column;
+          }
+
+          .attachment-field-row {
+            grid-template-columns: 1fr;
+          }
+
+          .attachment-remove-button {
+            width: 100%;
+          }
         }
       `}</style>
     </div>
@@ -1350,16 +1468,44 @@ function ProjectForm({
           </div>
         </label>
 
-        <label className="form-wide">
-          <span>Client Files & References</span>
-          <textarea
-            rows="3"
+        <div className="form-wide attachment-builder">
+          <div className="attachment-builder-heading">
+            <div>
+              <span className="attachment-builder-title">
+                Client Files & References
+              </span>
+              <small>
+                Add as many links or image references as needed. Each item can
+                have its own title.
+              </small>
+            </div>
+
+            <div className="attachment-add-actions">
+              <button
+                type="button"
+                className="attachment-add-button"
+                onClick={() => addAttachmentItem(form, updateField, "link")}
+              >
+                + Link
+              </button>
+
+              <button
+                type="button"
+                className="attachment-add-button"
+                onClick={() => addAttachmentItem(form, updateField, "image")}
+              >
+                + Image
+              </button>
+            </div>
+          </div>
+
+          <AttachmentFields
             value={form.attachment_links}
-            onChange={(e) =>
-              updateField("attachment_links", e.target.value)
+            onChange={(nextValue) =>
+              updateField("attachment_links", nextValue)
             }
           />
-        </label>
+        </div>
 
         <label className="form-wide">
           <span>Requirements & Notes</span>
@@ -1391,6 +1537,131 @@ function ProjectForm({
       </div>
     </form>
   );
+}
+
+function AttachmentFields({ value, onChange }) {
+  const items = parseAttachmentItems(value);
+
+  if (!items.length) {
+    return (
+      <div className="attachment-empty">
+        No client files or references added yet.
+      </div>
+    );
+  }
+
+  function updateItem(index, field, nextValue) {
+    const next = items.map((item, itemIndex) =>
+      itemIndex === index ? { ...item, [field]: nextValue } : item
+    );
+
+    onChange(JSON.stringify(next));
+  }
+
+  function removeItem(index) {
+    const next = items.filter((_, itemIndex) => itemIndex !== index);
+    onChange(JSON.stringify(next));
+  }
+
+  return (
+    <div className="attachment-fields">
+      {items.map((item, index) => (
+        <div className="attachment-field-row" key={item.id || index}>
+          <div className="attachment-type-badge">
+            {item.type === "image" ? "Image" : "Link"}
+          </div>
+
+          <label>
+            <span>Title / name</span>
+            <input
+              value={item.title || ""}
+              onChange={(event) =>
+                updateItem(index, "title", event.target.value)
+              }
+              placeholder={
+                item.type === "image"
+                  ? "e.g. Product Reference"
+                  : "e.g. Client Brief"
+              }
+            />
+          </label>
+
+          <label>
+            <span>{item.type === "image" ? "Image URL" : "Link URL"}</span>
+            <input
+              value={item.url || ""}
+              onChange={(event) =>
+                updateItem(index, "url", event.target.value)
+              }
+              placeholder="https://..."
+              inputMode="url"
+            />
+          </label>
+
+          <button
+            type="button"
+            className="attachment-remove-button"
+            onClick={() => removeItem(index)}
+            aria-label={`Remove ${item.title || item.type}`}
+            title="Remove"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function addAttachmentItem(form, updateField, type) {
+  const items = parseAttachmentItems(form.attachment_links);
+
+  items.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    type,
+    title: "",
+    url: "",
+  });
+
+  updateField("attachment_links", JSON.stringify(items));
+}
+
+function parseAttachmentItems(value) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+
+  try {
+    const parsed = JSON.parse(text);
+
+    if (Array.isArray(parsed)) {
+      return parsed.map((item, index) => ({
+        id: item.id || `saved-${index}`,
+        type: item.type === "image" ? "image" : "link",
+        title: String(item.title || ""),
+        url: String(item.url || ""),
+      }));
+    }
+  } catch {
+    // Legacy text is handled below.
+  }
+
+  const urls =
+    text.match(/https?:\/\/[^\s,]+/gi) ||
+    text
+      .split(/[\r\n,]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  return urls.map((url, index) => ({
+    id: `legacy-${index}`,
+    type: "link",
+    title: `Link ${index + 1}`,
+    url,
+  }));
+}
+
+function getAttachments(value) {
+  return parseAttachmentItems(value).filter((item) => item.url?.trim());
 }
 
 function IconEye() {

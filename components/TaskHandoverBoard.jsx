@@ -373,27 +373,38 @@ export default function TaskHandoverBoard({
                     <div className="accept-area">
                       <div className="project-actions">
                         <Link
-                          className="secondary-button action-link"
+                          className="action-icon-button"
                           href={`/admin/tasks/${item.id}`}
+                          aria-label={`View ${item.title}`}
+                          title="View"
                         >
-                          View
+                          <IconEye />
+                          <span>View</span>
                         </Link>
 
                         <button
                           type="button"
-                          className="secondary-button"
+                          className="action-icon-button"
                           onClick={() => startEdit(item)}
+                          aria-label={`Edit ${item.title}`}
+                          title="Edit"
                         >
-                          Edit
+                          <IconEdit />
+                          <span>Edit</span>
                         </button>
 
                         <button
                           type="button"
-                          className="danger-button"
+                          className="action-icon-button action-danger"
                           disabled={deletingId === item.id}
                           onClick={() => deleteProject(item.id)}
+                          aria-label={`Delete ${item.title}`}
+                          title="Delete"
                         >
-                          {deletingId === item.id ? "Deleting..." : "Delete"}
+                          <IconTrash />
+                          <span>
+                            {deletingId === item.id ? "Deleting" : "Delete"}
+                          </span>
                         </button>
                       </div>
 
@@ -519,36 +530,50 @@ export default function TaskHandoverBoard({
 
                       <div className="row-actions">
                         <Link
-                          className="text-button"
+                          className="action-icon-button"
                           href={`/admin/tasks/${item.id}`}
+                          aria-label={`View ${item.title}`}
+                          title="View"
                         >
-                          View
+                          <IconEye />
+                          <span>View</span>
                         </Link>
 
                         <button
                           type="button"
-                          className="text-button"
+                          className="action-icon-button"
                           onClick={() => startEdit(item)}
+                          aria-label={`Edit ${item.title}`}
+                          title="Edit"
                         >
-                          Edit
+                          <IconEdit />
+                          <span>Edit</span>
                         </button>
 
                         <button
                           type="button"
-                          className="text-button danger-text"
+                          className="action-icon-button action-danger"
                           disabled={deletingId === item.id}
                           onClick={() => deleteProject(item.id)}
+                          aria-label={`Delete ${item.title}`}
+                          title="Delete"
                         >
-                          {deletingId === item.id ? "Deleting..." : "Delete"}
+                          <IconTrash />
+                          <span>
+                            {deletingId === item.id ? "Deleting" : "Delete"}
+                          </span>
                         </button>
 
                         <button
                           type="button"
-                          className="text-button"
+                          className="action-icon-button action-return"
                           disabled={savingId === item.id}
                           onClick={() => returnToOpen(item)}
+                          aria-label={`Return ${item.title} to unassigned`}
+                          title="Return to Unassigned"
                         >
-                          Return to Unassigned
+                          <IconReturn />
+                          <span>Return</span>
                         </button>
                       </div>
 
@@ -1012,9 +1037,60 @@ export default function TaskHandoverBoard({
         .row-actions {
           display: flex;
           flex-wrap: wrap;
-          gap: 10px;
+          gap: 8px;
           justify-content: flex-end;
           align-items: center;
+        }
+
+        .action-icon-button {
+          min-height: 38px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          padding: 0 11px;
+          border: 1px solid #ddd8d0;
+          border-radius: 10px;
+          background: #fff;
+          color: #222;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 700;
+          text-decoration: none;
+          cursor: pointer;
+          transition:
+            transform 0.15s ease,
+            border-color 0.15s ease,
+            background 0.15s ease;
+        }
+
+        .action-icon-button:hover {
+          transform: translateY(-1px);
+          border-color: #aaa49c;
+          background: #faf9f7;
+        }
+
+        .action-icon-button svg {
+          width: 16px;
+          height: 16px;
+          flex: 0 0 auto;
+        }
+
+        .action-icon-button.action-danger {
+          color: #9d2d24;
+          border-color: #e7c7c2;
+          background: #fffafa;
+        }
+
+        .action-icon-button.action-return {
+          color: #4d4a45;
+          background: #f6f4f1;
+        }
+
+        .action-icon-button:disabled {
+          opacity: 0.45;
+          cursor: wait;
+          transform: none;
         }
 
         .check-wrap {
@@ -1133,7 +1209,14 @@ export default function TaskHandoverBoard({
           }
 
           .row-actions {
-            justify-content: flex-start;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            width: 100%;
+            justify-content: stretch;
+          }
+
+          .action-icon-button {
+            width: 100%;
           }
         }
       `}</style>
@@ -1307,6 +1390,88 @@ function ProjectForm({
         </button>
       </div>
     </form>
+  );
+}
+
+function IconEye() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M2.7 12s3.4-6 9.3-6 9.3 6 9.3 6-3.4 6-9.3 6-9.3-6-9.3-6Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="2.7"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
+function IconEdit() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 20h4l10.7-10.7a2.1 2.1 0 0 0-3-3L5 17v3Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m14.5 7.5 3 3"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 11v5M14 11v5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconReturn() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 7 4 12l5 5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5 12h8a6 6 0 0 1 6 6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

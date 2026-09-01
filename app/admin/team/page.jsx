@@ -1,32 +1,11 @@
 import Link from "next/link";
 import AdminShell from "@/components/AdminShell";
-import { getTeamMembers } from "@/lib/teamAdmin";
-
-const fallbackMembers = [
-  ["francesca-navarro", "Francesca Navarro", "Creative Direction & Marketing", "Active"],
-  ["alex-rivera", "Alex Rivera", "Design & Brand Systems", "Active"],
-  ["sam-lee", "Sam Lee", "Content & Digital", "Active"],
-];
+import { getMergedTeamMembers } from "@/lib/teamDirectory";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminTeamPage() {
-  let members = fallbackMembers;
-
-  try {
-    const savedMembers = await getTeamMembers();
-
-    if (savedMembers.length) {
-      members = savedMembers.map((member) => [
-        member.slug,
-        member.name,
-        member.role,
-        member.status || "Active",
-      ]);
-    }
-  } catch {
-    // Keep fallback list until Supabase is initialized.
-  }
+  const members = await getMergedTeamMembers({ includeInactive: true });
 
   return (
     <AdminShell
@@ -42,18 +21,18 @@ export default async function AdminTeamPage() {
 
       <section className="admin-panel">
         <div className="admin-list">
-          {members.map(([slug, name, role, status]) => (
-            <div className="admin-list-row" key={slug}>
+          {members.map((member) => (
+            <div className="admin-list-row" key={member.slug}>
               <div>
-                <strong>{name}</strong>
-                <span>{role}</span>
+                <strong>{member.name}</strong>
+                <span>{member.role}</span>
               </div>
 
               <div className="admin-row-actions">
-                <span className="admin-pill">{status}</span>
+                <span className="admin-pill">{member.status}</span>
                 <Link
                   className="admin-text-button"
-                  href={`/admin/team/${slug}`}
+                  href={`/admin/team/${member.slug}`}
                 >
                   Edit →
                 </Link>

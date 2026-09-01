@@ -548,7 +548,7 @@ export default function TaskHandoverBoard({
         </div>
       </section>
 
-      <style jsx>{`
+      <style jsx global>{`
         .handover-board {
           display: flex;
           flex-direction: column;
@@ -638,15 +638,20 @@ export default function TaskHandoverBoard({
         .new-project-form,
         .edit-panel,
         .person-edit-panel {
-          padding: 22px 24px 24px;
+          padding: 24px;
           background: #faf9f7;
+        }
+
+        .new-project-form {
+          border-bottom: 1px solid #e4e0da;
         }
 
         .edit-panel {
           grid-column: 1 / -1;
           width: 100%;
-          border: 1px solid #e2ddd6;
-          border-radius: 12px;
+          border: 1px solid #ded9d1;
+          border-radius: 14px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.035);
         }
 
         .person-edit-panel {
@@ -659,42 +664,61 @@ export default function TaskHandoverBoard({
         .form-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 18px 16px;
+          gap: 20px 18px;
         }
 
         .form-wide {
           grid-column: 1 / -1;
         }
 
-        label {
+        .new-project-form label {
           display: flex;
           flex-direction: column;
-          gap: 7px;
+          gap: 8px;
+          min-width: 0;
           font-size: 12px;
           font-weight: 700;
+          color: #26231f;
         }
 
-        label small {
+        .new-project-form label small {
           color: #8a847d;
           font-size: 11px;
           font-weight: 400;
-          line-height: 1.35;
+          line-height: 1.4;
         }
 
-        input,
-        textarea,
-        select {
+        .new-project-form input,
+        .new-project-form textarea,
+        .new-project-form select,
+        .accept-area select,
+        .status-select {
           width: 100%;
+          min-height: 42px;
           border: 1px solid #d8d4cd;
-          border-radius: 9px;
-          padding: 10px 11px;
+          border-radius: 10px;
+          padding: 10px 12px;
           background: #fff;
           font: inherit;
           color: inherit;
           outline: none;
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
-        textarea {
+        .new-project-form textarea {
+          min-height: 92px;
+        }
+
+        .new-project-form input:focus,
+        .new-project-form textarea:focus,
+        .new-project-form select:focus,
+        .accept-area select:focus,
+        .status-select:focus {
+          border-color: #111;
+          box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.045);
+        }
+
+        .new-project-form textarea {
           resize: vertical;
         }
 
@@ -877,6 +901,7 @@ export default function TaskHandoverBoard({
           display: flex;
           gap: 8px;
           justify-content: flex-end;
+          flex-wrap: wrap;
         }
 
         .person-block {

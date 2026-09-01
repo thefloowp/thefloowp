@@ -1,13 +1,33 @@
 import Link from "next/link";
 import AdminShell from "@/components/AdminShell";
+import { getTeamMembers } from "@/lib/teamAdmin";
 
-const members = [
+const fallbackMembers = [
   ["francesca-navarro", "Francesca Navarro", "Creative Direction & Marketing", "Active"],
   ["alex-rivera", "Alex Rivera", "Design & Brand Systems", "Active"],
   ["sam-lee", "Sam Lee", "Content & Digital", "Active"],
 ];
 
-export default function AdminTeamPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminTeamPage() {
+  let members = fallbackMembers;
+
+  try {
+    const savedMembers = await getTeamMembers();
+
+    if (savedMembers.length) {
+      members = savedMembers.map((member) => [
+        member.slug,
+        member.name,
+        member.role,
+        member.status || "Active",
+      ]);
+    }
+  } catch {
+    // Keep fallback list until Supabase is initialized.
+  }
+
   return (
     <AdminShell
       title="Team"

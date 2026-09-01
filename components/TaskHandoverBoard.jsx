@@ -10,6 +10,18 @@ const STATUS_OPTIONS = [
   "Done",
 ];
 
+const WORK_TYPES = [
+  "Branding",
+  "Graphic Design",
+  "Social Media",
+  "Video",
+  "Web / UI",
+  "Copywriting",
+  "Presentation",
+  "E-commerce",
+  "Other",
+];
+
 export default function TaskHandoverBoard({
   initialItems,
   teamMembers,
@@ -21,11 +33,18 @@ export default function TaskHandoverBoard({
   const [showCreate, setShowCreate] = useState(false);
   const [acceptingId, setAcceptingId] = useState("");
   const [acceptAs, setAcceptAs] = useState(teamMembers?.[0] || "");
+
   const [form, setForm] = useState({
     title: "",
     description: "",
+    work_type: "",
     priority: "Normal",
+    start_date: todayISO(),
     due_date: "",
+    turnaround_days: "",
+    required_file_type: "",
+    attachment_links: "",
+    notes: "",
   });
 
   const openProjects = useMemo(
@@ -44,6 +63,23 @@ export default function TaskHandoverBoard({
     [items, teamMembers]
   );
 
+  function updateForm(field, value) {
+    setForm((current) => {
+      const next = { ...current, [field]: value };
+
+      if (field === "start_date" || field === "due_date") {
+        const start = field === "start_date" ? value : next.start_date;
+        const due = field === "due_date" ? value : next.due_date;
+
+        if (start && due) {
+          next.turnaround_days = String(daysBetween(start, due));
+        }
+      }
+
+      return next;
+    });
+  }
+
   async function createProject(event) {
     event.preventDefault();
     setError("");
@@ -56,10 +92,26 @@ export default function TaskHandoverBoard({
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || "Unable to create project.");
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to create project.");
+      }
 
       setItems((current) => [data.item, ...current]);
-      setForm({ title: "", description: "", priority: "Normal", due_date: "" });
+
+      setForm({
+        title: "",
+        description: "",
+        work_type: "",
+        priority: "Normal",
+        start_date: todayISO(),
+        due_date: "",
+        turnaround_days: "",
+        required_file_type: "",
+        attachment_links: "",
+        notes: "",
+      });
+
       setShowCreate(false);
     } catch (err) {
       setError(err.message);
@@ -78,7 +130,10 @@ export default function TaskHandoverBoard({
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || "Unable to update project.");
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to update project.");
+      }
 
       setItems((current) =>
         current.map((item) => (item.id === id ? data.item : item))
@@ -108,7 +163,10 @@ export default function TaskHandoverBoard({
   }
 
   function returnToOpen(item) {
-    patchItem(item.id, { assignee: null, status: "Open" });
+    patchItem(item.id, {
+      assignee: null,
+      status: "Open",
+    });
   }
 
   return (
@@ -121,8 +179,13 @@ export default function TaskHandoverBoard({
             <p className="handover-eyebrow">Available to accept</p>
             <h2>Open Projects</h2>
           </div>
-          <button className="primary-button" onClick={() => setShowCreate(true)}>
-            + New Open Project
+
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => setShowCreate((current) => !current)}
+          >
+            {showCreate ? "Close" : "+ New Open Project"}
           </button>
         </div>
 
@@ -130,37 +193,46 @@ export default function TaskHandoverBoard({
           <form className="new-project-form" onSubmit={createProject}>
             <div className="form-grid">
               <label className="form-wide">
-                <span>Project name</span>
+                <span>Project name *</span>
                 <input
                   value={form.title}
-                  onChange={(e) =>
-                    setForm((current) => ({ ...current, title: e.target.value }))
-                  }
+                  onChange={(e) => updateForm("title", e.target.value)}
+                  placeholder="e.g. September Campaign Key Visuals"
                   required
                 />
               </label>
 
               <label className="form-wide">
-                <span>Short description</span>
+                <span>Project brief / description *</span>
                 <textarea
-                  rows="3"
+                  rows="4"
                   value={form.description}
-                  onChange={(e) =>
-                    setForm((current) => ({
-                      ...current,
-                      description: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => updateForm("description", e.target.value)}
+                  placeholder="What needs to be done? Include the objective, deliverables, and important context."
+                  required
                 />
+              </label>
+
+              <label>
+                <span>Type of work</span>
+                <select
+                  value={form.work_type}
+                  onChange={(e) => updateForm("work_type", e.target.value)}
+                >
+                  <option value="">Select type</option>
+                  {WORK_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label>
                 <span>Priority</span>
                 <select
                   value={form.priority}
-                  onChange={(e) =>
-                    setForm((current) => ({ ...current, priority: e.target.value }))
-                  }
+                  onChange={(e) => updateForm("priority", e.target.value)}
                 >
                   <option>Low</option>
                   <option>Normal</option>
@@ -170,13 +242,77 @@ export default function TaskHandoverBoard({
               </label>
 
               <label>
-                <span>Due date</span>
+                <span>Start / request date</span>
+                <input
+                  type="date"
+                  value={form.start_date}
+                  onChange={(e) => updateForm("start_date", e.target.value)}
+                />
+              </label>
+
+              <label>
+                <span>Target / submission date *</span>
                 <input
                   type="date"
                   value={form.due_date}
+                  onChange={(e) => updateForm("due_date", e.target.value)}
+                  required
+                />
+              </label>
+
+              <label>
+                <span>Turnaround</span>
+                <div className="input-with-suffix">
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.turnaround_days}
+                    onChange={(e) =>
+                      updateForm("turnaround_days", e.target.value)
+                    }
+                    placeholder="0"
+                  />
+                  <span>days</span>
+                </div>
+                <small>
+                  Auto-calculated from the start and submission dates. You can
+                  still edit it.
+                </small>
+              </label>
+
+              <label>
+                <span>Required file type(s)</span>
+                <input
+                  value={form.required_file_type}
                   onChange={(e) =>
-                    setForm((current) => ({ ...current, due_date: e.target.value }))
+                    updateForm("required_file_type", e.target.value)
                   }
+                  placeholder="e.g. AI + PDF + PNG"
+                />
+                <small>
+                  Specify the final deliverable format, editable source, or both.
+                </small>
+              </label>
+
+              <label className="form-wide">
+                <span>Attachments / reference links</span>
+                <textarea
+                  rows="3"
+                  value={form.attachment_links}
+                  onChange={(e) =>
+                    updateForm("attachment_links", e.target.value)
+                  }
+                  placeholder={"Paste Google Drive, Figma, Dropbox, reference, or brief links here.\nOne link per line."}
+                />
+              </label>
+
+              <label className="form-wide">
+                <span>Special instructions / notes</span>
+                <textarea
+                  rows="3"
+                  value={form.notes}
+                  onChange={(e) => updateForm("notes", e.target.value)}
+                  placeholder="Dimensions, platform requirements, naming convention, versions needed, approval notes, etc."
                 />
               </label>
             </div>
@@ -189,6 +325,7 @@ export default function TaskHandoverBoard({
               >
                 Cancel
               </button>
+
               <button type="submit" className="primary-button">
                 Add to Open Projects
               </button>
@@ -199,23 +336,86 @@ export default function TaskHandoverBoard({
         <div className="open-project-list">
           {openProjects.length === 0 ? (
             <div className="empty-state">
-              No open projects right now. New projects will stay here until somebody accepts them.
+              No open projects right now. New projects will stay here until
+              somebody accepts them.
             </div>
           ) : (
             openProjects.map((item) => (
               <article className="open-project-card" key={item.id}>
                 <div className="project-main">
                   <div className="project-topline">
-                    <span className={`priority ${item.priority?.toLowerCase()}`}>
+                    {item.work_type ? (
+                      <span className="work-type">{item.work_type}</span>
+                    ) : null}
+
+                    <span
+                      className={`priority ${String(
+                        item.priority || "Normal"
+                      ).toLowerCase()}`}
+                    >
                       {item.priority || "Normal"}
                     </span>
+
                     <span className="status-pill">Open</span>
                   </div>
+
                   <h3>{item.title}</h3>
+
                   {item.description ? <p>{item.description}</p> : null}
-                  <div className="project-meta">
-                    {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
+
+                  <div className="detail-grid">
+                    <Detail
+                      label="Submission"
+                      value={
+                        item.due_date
+                          ? formatDate(item.due_date)
+                          : "No target date"
+                      }
+                    />
+
+                    <Detail
+                      label="Turnaround"
+                      value={
+                        item.turnaround_days !== null &&
+                        item.turnaround_days !== undefined &&
+                        item.turnaround_days !== ""
+                          ? `${item.turnaround_days} day${
+                              Number(item.turnaround_days) === 1 ? "" : "s"
+                            }`
+                          : "Not set"
+                      }
+                    />
+
+                    <Detail
+                      label="File type"
+                      value={item.required_file_type || "Not specified"}
+                    />
                   </div>
+
+                  {item.notes ? (
+                    <div className="project-notes">
+                      <strong>Notes</strong>
+                      <span>{item.notes}</span>
+                    </div>
+                  ) : null}
+
+                  {getLinks(item.attachment_links).length ? (
+                    <div className="attachment-list">
+                      <strong>Attachments / References</strong>
+                      <div>
+                        {getLinks(item.attachment_links).map((link, index) => (
+                          <a
+                            key={`${link}-${index}`}
+                            href={normalizeUrl(link)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Link {index + 1} ↗
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="accept-area">
@@ -263,10 +463,12 @@ export default function TaskHandoverBoard({
             <article className="person-block" key={group.name}>
               <div className="person-heading">
                 <div className="person-avatar">{initialsFor(group.name)}</div>
+
                 <div>
                   <h3>{group.name}</h3>
                   <span>
-                    {group.items.length} project{group.items.length === 1 ? "" : "s"}
+                    {group.items.length} project
+                    {group.items.length === 1 ? "" : "s"}
                   </span>
                 </div>
               </div>
@@ -283,7 +485,9 @@ export default function TaskHandoverBoard({
                           checked={item.status === "Done"}
                           onChange={(event) =>
                             patchItem(item.id, {
-                              status: event.target.checked ? "Done" : "In Progress",
+                              status: event.target.checked
+                                ? "Done"
+                                : "In Progress",
                             })
                           }
                         />
@@ -293,7 +497,17 @@ export default function TaskHandoverBoard({
                       <div className="person-project-copy">
                         <strong>{item.title}</strong>
                         <small>
-                          {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
+                          {item.due_date
+                            ? `Submit ${formatDate(item.due_date)}`
+                            : "No target date"}
+                          {item.turnaround_days !== null &&
+                          item.turnaround_days !== undefined &&
+                          item.turnaround_days !== ""
+                            ? ` • ${item.turnaround_days}d turnaround`
+                            : ""}
+                          {item.required_file_type
+                            ? ` • ${item.required_file_type}`
+                            : ""}
                         </small>
                       </div>
 
@@ -306,7 +520,9 @@ export default function TaskHandoverBoard({
                         }
                         disabled={savingId === item.id}
                         onChange={(event) =>
-                          patchItem(item.id, { status: event.target.value })
+                          patchItem(item.id, {
+                            status: event.target.value,
+                          })
                         }
                       >
                         {STATUS_OPTIONS.map((status) => (
@@ -333,13 +549,19 @@ export default function TaskHandoverBoard({
       </section>
 
       <style jsx>{`
-        .handover-board { display: flex; flex-direction: column; gap: 28px; }
+        .handover-board {
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+        }
+
         .handover-section {
           background: #fff;
           border: 1px solid #ddd9d2;
           border-radius: 16px;
           overflow: hidden;
         }
+
         .handover-section-heading {
           display: flex;
           justify-content: space-between;
@@ -348,6 +570,7 @@ export default function TaskHandoverBoard({
           padding: 24px;
           border-bottom: 1px solid #e4e0da;
         }
+
         .handover-eyebrow {
           margin: 0 0 5px;
           color: #77726b;
@@ -356,11 +579,20 @@ export default function TaskHandoverBoard({
           letter-spacing: 0.14em;
           text-transform: uppercase;
         }
-        h2 { margin: 0; font-size: 28px; letter-spacing: -0.035em; }
-        .primary-button, .secondary-button, .text-button {
+
+        h2 {
+          margin: 0;
+          font-size: 28px;
+          letter-spacing: -0.035em;
+        }
+
+        .primary-button,
+        .secondary-button,
+        .text-button {
           font: inherit;
           cursor: pointer;
         }
+
         .primary-button {
           border: 0;
           border-radius: 999px;
@@ -370,12 +602,14 @@ export default function TaskHandoverBoard({
           font-weight: 700;
           white-space: nowrap;
         }
+
         .secondary-button {
           border: 1px solid #d7d2ca;
           border-radius: 999px;
           padding: 9px 14px;
           background: #fff;
         }
+
         .text-button {
           border: 0;
           padding: 0;
@@ -383,18 +617,29 @@ export default function TaskHandoverBoard({
           text-decoration: underline;
           white-space: nowrap;
         }
-        button:disabled, select:disabled { opacity: 0.5; cursor: wait; }
+
+        button:disabled,
+        select:disabled {
+          opacity: 0.5;
+          cursor: wait;
+        }
+
         .new-project-form {
-          padding: 22px 24px;
+          padding: 22px 24px 24px;
           border-bottom: 1px solid #e4e0da;
           background: #faf9f7;
         }
+
         .form-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 16px;
+          gap: 18px 16px;
         }
-        .form-wide { grid-column: 1 / -1; }
+
+        .form-wide {
+          grid-column: 1 / -1;
+        }
+
         label {
           display: flex;
           flex-direction: column;
@@ -402,7 +647,17 @@ export default function TaskHandoverBoard({
           font-size: 12px;
           font-weight: 700;
         }
-        input, textarea, select {
+
+        label small {
+          color: #8a847d;
+          font-size: 11px;
+          font-weight: 400;
+          line-height: 1.35;
+        }
+
+        input,
+        textarea,
+        select {
           width: 100%;
           border: 1px solid #d8d4cd;
           border-radius: 9px;
@@ -412,31 +667,76 @@ export default function TaskHandoverBoard({
           color: inherit;
           outline: none;
         }
-        textarea { resize: vertical; }
-        input:focus, textarea:focus, select:focus { border-color: #111; }
+
+        textarea {
+          resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+          border-color: #111;
+        }
+
+        .input-with-suffix {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          border: 1px solid #d8d4cd;
+          border-radius: 9px;
+          background: #fff;
+          overflow: hidden;
+        }
+
+        .input-with-suffix input {
+          border: 0;
+          border-radius: 0;
+        }
+
+        .input-with-suffix span {
+          padding: 0 12px;
+          color: #77726b;
+          font-size: 12px;
+          font-weight: 400;
+        }
+
         .form-actions {
           display: flex;
           justify-content: flex-end;
           gap: 10px;
-          margin-top: 18px;
+          margin-top: 20px;
         }
-        .open-project-list, .person-list { padding: 0 24px; }
+
+        .open-project-list,
+        .person-list {
+          padding: 0 24px;
+        }
+
         .open-project-card {
           display: grid;
           grid-template-columns: minmax(0, 1fr) auto;
-          gap: 26px;
-          align-items: center;
-          padding: 22px 0;
+          gap: 28px;
+          align-items: start;
+          padding: 24px 0;
           border-bottom: 1px solid #e5e1db;
         }
-        .open-project-card:last-child, .person-block:last-child { border-bottom: 0; }
+
+        .open-project-card:last-child,
+        .person-block:last-child {
+          border-bottom: 0;
+        }
+
         .project-topline {
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
           gap: 8px;
           margin-bottom: 9px;
         }
-        .priority, .status-pill {
+
+        .priority,
+        .status-pill,
+        .work-type {
           display: inline-flex;
           align-items: center;
           min-height: 23px;
@@ -447,33 +747,124 @@ export default function TaskHandoverBoard({
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
-        .priority { background: #efede9; }
-        .priority.high, .priority.urgent { background: #f6e7e3; }
-        .status-pill { background: #e8f4e9; color: #266632; }
-        .project-main h3 { margin: 0; font-size: 19px; }
-        .project-main p {
-          margin: 7px 0;
-          max-width: 700px;
+
+        .work-type {
+          background: #ecebf8;
+          color: #4c4779;
+        }
+
+        .priority {
+          background: #efede9;
+        }
+
+        .priority.high,
+        .priority.urgent {
+          background: #f6e7e3;
+        }
+
+        .status-pill {
+          background: #e8f4e9;
+          color: #266632;
+        }
+
+        .project-main h3 {
+          margin: 0;
+          font-size: 19px;
+        }
+
+        .project-main > p {
+          margin: 7px 0 15px;
+          max-width: 760px;
           color: #68635d;
           line-height: 1.45;
         }
-        .project-meta { margin-top: 10px; color: #8a847d; font-size: 12px; }
+
+        .detail-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          max-width: 720px;
+          margin-top: 14px;
+        }
+
+        :global(.project-detail) {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          padding: 10px 12px;
+          border: 1px solid #ebe7e1;
+          border-radius: 9px;
+          background: #faf9f7;
+        }
+
+        :global(.project-detail-label) {
+          color: #908980;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        :global(.project-detail-value) {
+          font-size: 12px;
+          line-height: 1.35;
+        }
+
+        .project-notes,
+        .attachment-list {
+          max-width: 720px;
+          margin-top: 13px;
+          padding-top: 12px;
+          border-top: 1px solid #ebe7e1;
+          font-size: 12px;
+        }
+
+        .project-notes {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .project-notes span {
+          color: #68635d;
+          line-height: 1.45;
+          white-space: pre-wrap;
+        }
+
+        .attachment-list > div {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 7px;
+        }
+
+        .attachment-list a {
+          display: inline-flex;
+          border: 1px solid #dcd7cf;
+          border-radius: 999px;
+          padding: 6px 9px;
+          font-size: 11px;
+        }
+
         .accept-area {
-          min-width: 180px;
+          min-width: 190px;
           display: flex;
           flex-direction: column;
           gap: 8px;
         }
+
         .person-block {
           padding: 24px 0;
           border-bottom: 1px solid #e5e1db;
         }
+
         .person-heading {
           display: flex;
           align-items: center;
           gap: 12px;
           margin-bottom: 14px;
         }
+
         .person-avatar {
           width: 38px;
           height: 38px;
@@ -485,27 +876,45 @@ export default function TaskHandoverBoard({
           font-size: 12px;
           font-weight: 700;
         }
-        .person-heading h3 { margin: 0 0 3px; font-size: 17px; }
-        .person-heading span { color: #8a847d; font-size: 12px; }
+
+        .person-heading h3 {
+          margin: 0 0 3px;
+          font-size: 17px;
+        }
+
+        .person-heading span {
+          color: #8a847d;
+          font-size: 12px;
+        }
+
         .person-projects {
           margin-left: 50px;
           border-top: 1px solid #e6e2dc;
         }
+
         .person-project-row {
-          min-height: 58px;
+          min-height: 62px;
           display: grid;
           grid-template-columns: auto minmax(0, 1fr) 150px auto;
           gap: 14px;
           align-items: center;
           border-bottom: 1px solid #e6e2dc;
         }
-        .person-project-row:last-child { border-bottom: 0; }
-        .check-wrap { display: block; }
+
+        .person-project-row:last-child {
+          border-bottom: 0;
+        }
+
+        .check-wrap {
+          display: block;
+        }
+
         .check-wrap input {
           position: absolute;
           opacity: 0;
           pointer-events: none;
         }
+
         .check-wrap span {
           width: 18px;
           height: 18px;
@@ -515,10 +924,12 @@ export default function TaskHandoverBoard({
           position: relative;
           cursor: pointer;
         }
+
         .check-wrap input:checked + span {
           background: #111;
           border-color: #111;
         }
+
         .check-wrap input:checked + span::after {
           content: "✓";
           position: absolute;
@@ -528,21 +939,40 @@ export default function TaskHandoverBoard({
           color: #fff;
           font-size: 12px;
         }
+
         .person-project-copy {
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 4px;
         }
+
         .person-project-copy strong {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .person-project-copy small { color: #8a847d; }
-        .person-empty, .empty-state { color: #918b83; font-size: 13px; }
-        .person-empty { margin: 0; padding: 18px 0; }
-        .empty-state { padding: 28px 0; }
+
+        .person-project-copy small {
+          color: #8a847d;
+          line-height: 1.35;
+        }
+
+        .person-empty,
+        .empty-state {
+          color: #918b83;
+          font-size: 13px;
+        }
+
+        .person-empty {
+          margin: 0;
+          padding: 18px 0;
+        }
+
+        .empty-state {
+          padding: 28px 0;
+        }
+
         .handover-error {
           padding: 13px 15px;
           border: 1px solid #e3b6ad;
@@ -551,20 +981,54 @@ export default function TaskHandoverBoard({
           border-radius: 10px;
           font-size: 13px;
         }
+
         @media (max-width: 850px) {
-          .handover-section-heading { align-items: stretch; flex-direction: column; }
-          .open-project-card { grid-template-columns: 1fr; align-items: stretch; }
-          .accept-area { min-width: 0; }
-          .form-grid { grid-template-columns: 1fr; }
-          .form-wide { grid-column: auto; }
-          .person-projects { margin-left: 0; }
+          .handover-section-heading {
+            align-items: stretch;
+            flex-direction: column;
+          }
+
+          .open-project-card {
+            grid-template-columns: 1fr;
+          }
+
+          .accept-area {
+            min-width: 0;
+          }
+
+          .form-grid,
+          .detail-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .form-wide {
+            grid-column: auto;
+          }
+
+          .person-projects {
+            margin-left: 0;
+          }
+
           .person-project-row {
             grid-template-columns: auto minmax(0, 1fr);
             padding: 12px 0;
           }
-          .status-select, .text-button { grid-column: 2; }
+
+          .status-select,
+          .text-button {
+            grid-column: 2;
+          }
         }
       `}</style>
+    </div>
+  );
+}
+
+function Detail({ label, value }) {
+  return (
+    <div className="project-detail">
+      <span className="project-detail-label">{label}</span>
+      <span className="project-detail-value">{value}</span>
     </div>
   );
 }
@@ -578,11 +1042,37 @@ function initialsFor(name) {
     .join("");
 }
 
+function todayISO() {
+  const date = new Date();
+  const timezoneOffset = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 10);
+}
+
+function daysBetween(start, end) {
+  const startDate = new Date(`${start}T00:00:00`);
+  const endDate = new Date(`${end}T00:00:00`);
+  const diff = Math.ceil((endDate - startDate) / 86400000);
+  return Math.max(0, diff);
+}
+
 function formatDate(value) {
   const date = new Date(`${value}T00:00:00`);
+
   return new Intl.DateTimeFormat("en-PH", {
     month: "short",
     day: "numeric",
     year: "numeric",
   }).format(date);
+}
+
+function getLinks(value) {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeUrl(value) {
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://${value}`;
 }

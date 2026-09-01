@@ -157,18 +157,25 @@ export default async function WorkDetailPage({ params }) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {attachment.type === "image" ? (
-                    <div className="work-link-thumbnail">
+                  <div
+                    className={`work-resource-visual ${
+                      attachment.type === "image" ? "is-image" : ""
+                    }`}
+                  >
+                    {attachment.type === "image" ? (
                       <img
                         src={attachment.url}
                         alt={attachment.title || `Image ${index + 1}`}
                       />
-                    </div>
-                  ) : (
-                    <div className="work-link-icon">↗</div>
-                  )}
+                    ) : (
+                      <ResourceLinkIcon />
+                    )}
+                  </div>
 
                   <span className="work-link-copy">
+                    <span className="work-resource-type">
+                      {attachment.type === "image" ? "Image" : "Link"}
+                    </span>
                     <strong>
                       {attachment.title ||
                         (attachment.type === "image"
@@ -178,7 +185,9 @@ export default async function WorkDetailPage({ params }) {
                     <small>{shortenLink(attachment.url)}</small>
                   </span>
 
-                  <span className="work-link-open">Open ↗</span>
+                  <span className="work-link-open" aria-hidden="true">
+                    <OpenIcon />
+                  </span>
                 </a>
               ))}
             </div>
@@ -315,47 +324,74 @@ export default async function WorkDetailPage({ params }) {
         }
 
         .work-link-card {
-          display: flex;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
           align-items: center;
-          justify-content: space-between;
-          gap: 18px;
-          padding: 14px 15px;
+          gap: 14px;
+          padding: 13px 14px;
           border: 1px solid #ddd8d0;
           border-radius: 12px;
-          background: #faf9f7;
+          background: #fff;
           color: inherit;
           text-decoration: none;
+          transition:
+            border-color .15s ease,
+            background .15s ease,
+            transform .15s ease;
         }
 
-        .work-link-thumbnail,
-        .work-link-icon {
-          width: 52px;
-          height: 52px;
-          flex: 0 0 52px;
-          border-radius: 10px;
+        .work-link-card:hover {
+          transform: translateY(-1px);
+          border-color: #bdb7af;
+          background: #faf9f7;
+        }
+
+        .work-resource-visual {
+          width: 48px;
+          height: 48px;
+          flex: 0 0 48px;
+          display: grid;
+          place-items: center;
           overflow: hidden;
-          background: #eeece8;
+          border-radius: 10px;
+          background: #f0eeea;
+          color: #4a4640;
         }
 
-        .work-link-thumbnail img {
+        .work-resource-visual svg {
+          width: 19px;
+          height: 19px;
+        }
+
+        .work-resource-visual.is-image {
+          background: #e8e5df;
+        }
+
+        .work-resource-visual img {
           width: 100%;
           height: 100%;
           object-fit: cover;
           display: block;
         }
 
-        .work-link-icon {
-          display: grid;
-          place-items: center;
-          font-size: 18px;
-          font-weight: 700;
-        }
-
         .work-link-copy {
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 3px;
+        }
+
+        .work-resource-type {
+          color: #8c867e;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: .09em;
+          text-transform: uppercase;
+        }
+
+        .work-link-copy strong {
+          font-size: 14px;
+          line-height: 1.3;
         }
 
         .work-link-copy small {
@@ -367,8 +403,19 @@ export default async function WorkDetailPage({ params }) {
         }
 
         .work-link-open {
-          white-space: nowrap;
-          font-weight: 700;
+          width: 34px;
+          height: 34px;
+          display: grid;
+          place-items: center;
+          border: 1px solid #ddd8d0;
+          border-radius: 9px;
+          background: #faf9f7;
+          color: #333;
+        }
+
+        .work-link-open svg {
+          width: 15px;
+          height: 15px;
         }
 
         .work-detail-empty {
@@ -398,18 +445,77 @@ export default async function WorkDetailPage({ params }) {
           }
 
           .work-link-card {
-            align-items: flex-start;
-            flex-direction: column;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 11px;
+          }
+
+          .work-resource-visual {
+            width: 44px;
+            height: 44px;
+            flex-basis: 44px;
           }
 
           .work-link-copy small {
             max-width: 100%;
-            white-space: normal;
-            overflow-wrap: anywhere;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .work-link-open {
+            width: 32px;
+            height: 32px;
           }
         }
       `}</style>
     </AdminShell>
+  );
+}
+
+function ResourceLinkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function OpenIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M14 5h5v5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m19 5-8 8"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

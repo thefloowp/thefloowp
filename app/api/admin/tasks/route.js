@@ -82,7 +82,7 @@ export async function POST(request) {
       attachment_links: payload.attachment_links?.trim() || "",
       notes: payload.notes?.trim() || "",
       assignee: null,
-      status: "Open",
+      status: "Unassigned",
     });
 
     return NextResponse.json({ item });

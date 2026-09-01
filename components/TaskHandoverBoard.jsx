@@ -23,6 +23,10 @@ const WORK_TYPES = [
   "Other",
 ];
 
+const IMAGE_FORMATS = ["JPG", "JPEG", "PNG", "WEBP", "TIFF", "PSD", "AI", "SVG"];
+const VIDEO_FORMATS = ["MP4", "MOV", "AVI", "MKV", "WEBM", "M4V"];
+const OTHER_FORMATS = ["PDF", "PPTX", "DOCX", "XLSX", "ZIP", "Other"];
+
 export default function TaskHandoverBoard({
   initialItems,
   teamMembers,
@@ -780,6 +784,30 @@ export default function TaskHandoverBoard({
           resize: vertical;
         }
 
+        .date-field-wrap {
+          width: 100%;
+          min-width: 0;
+          overflow: hidden;
+          border: 1px solid #d8d4cd;
+          border-radius: 9px;
+          background: #fff;
+        }
+
+        .date-field-wrap .date-field {
+          width: 100%;
+          min-width: 0;
+          max-width: 100%;
+          box-sizing: border-box;
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          box-shadow: none !important;
+        }
+
+        .date-field::-webkit-date-and-time-value {
+          text-align: left;
+        }
+
         .input-with-prefix,
         .input-with-suffix {
           display: grid;
@@ -907,7 +935,7 @@ export default function TaskHandoverBoard({
 
         .deliverable-fields-grid {
           display: grid;
-          grid-template-columns: 1.25fr 1fr 1fr .65fr;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 12px;
         }
 
@@ -971,10 +999,11 @@ export default function TaskHandoverBoard({
         }
 
         .attachment-builder-heading {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: start;
           gap: 16px;
+          margin-bottom: 2px;
         }
 
         .attachment-builder-heading > div:first-child {
@@ -1519,9 +1548,13 @@ export default function TaskHandoverBoard({
             width: 100%;
           }
 
-          .deliverable-builder-heading,
-          .attachment-builder-heading {
+          .deliverable-builder-heading {
             flex-direction: column;
+          }
+
+          .attachment-builder-heading {
+            grid-template-columns: 1fr;
+            gap: 12px;
           }
 
           .deliverable-add-button {
@@ -1537,11 +1570,13 @@ export default function TaskHandoverBoard({
           }
 
           .attachment-add-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             width: 100%;
           }
 
           .attachment-add-button {
-            flex: 1 1 0;
+            width: 100%;
           }
 
           .attachment-field-inputs {
@@ -1795,9 +1830,19 @@ function DeliverableFields({ value, onChange }) {
   }
 
   function updateItem(index, field, nextValue) {
-    const next = items.map((item, itemIndex) =>
-      itemIndex === index ? { ...item, [field]: nextValue } : item
-    );
+    const next = items.map((item, itemIndex) => {
+      if (itemIndex !== index) return item;
+
+      const updated = { ...item, [field]: nextValue };
+
+      if (field === "media_type") {
+        updated.format = "";
+        if (nextValue !== "video") updated.duration = "";
+      }
+
+      return updated;
+    });
+
     onChange(JSON.stringify(next));
   }
 
@@ -1828,7 +1873,7 @@ function DeliverableFields({ value, onChange }) {
 
           <div className="deliverable-fields-grid">
             <label>
-              <span>File / output type</span>
+              <span>Output name</span>
               <input
                 value={item.name || ""}
                 onChange={(e) => updateItem(index, "name", e.target.value)}
@@ -1837,12 +1882,30 @@ function DeliverableFields({ value, onChange }) {
             </label>
 
             <label>
+              <span>Media type</span>
+              <select
+                value={item.media_type || "image"}
+                onChange={(e) => updateItem(index, "media_type", e.target.value)}
+              >
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+                <option value="document">Document / Other</option>
+              </select>
+            </label>
+
+            <label>
               <span>Format</span>
-              <input
+              <select
                 value={item.format || ""}
                 onChange={(e) => updateItem(index, "format", e.target.value)}
-                placeholder="e.g. PNG, JPG, MP4"
-              />
+              >
+                <option value="">Select format</option>
+                {getFormatOptions(item.media_type).map((format) => (
+                  <option key={format} value={format}>
+                    {format}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label>
@@ -1853,6 +1916,17 @@ function DeliverableFields({ value, onChange }) {
                 placeholder="e.g. 1:1 or 1080×1080"
               />
             </label>
+
+            {item.media_type === "video" ? (
+              <label>
+                <span>Duration</span>
+                <input
+                  value={item.duration || ""}
+                  onChange={(e) => updateItem(index, "duration", e.target.value)}
+                  placeholder="e.g. 15 sec, 30 sec, 1 min"
+                />
+              </label>
+            ) : null}
 
             <label>
               <span>Quantity</span>
@@ -1877,6 +1951,12 @@ function DeliverableFields({ value, onChange }) {
       ))}
     </div>
   );
+}
+
+function getFormatOptions(mediaType) {
+  if (mediaType === "video") return VIDEO_FORMATS;
+  if (mediaType === "document") return OTHER_FORMATS;
+  return IMAGE_FORMATS;
 }
 
 function TeamMultiSelect({ options, value, onChange }) {
@@ -1922,8 +2002,10 @@ function addDeliverable(form, updateField) {
   items.push({
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: "",
+    media_type: "image",
     format: "",
     ratio: "",
+    duration: "",
     quantity: "1",
     notes: "",
   });
@@ -1942,8 +2024,13 @@ function parseDeliverables(value) {
       return parsed.map((item, index) => ({
         id: item.id || `saved-deliverable-${index}`,
         name: String(item.name || ""),
+        media_type:
+          item.media_type === "video" || item.media_type === "document"
+            ? item.media_type
+            : "image",
         format: String(item.format || ""),
         ratio: String(item.ratio || ""),
+        duration: String(item.duration || ""),
         quantity: String(item.quantity || "1"),
         notes: String(item.notes || ""),
       }));
@@ -1956,8 +2043,10 @@ function parseDeliverables(value) {
     {
       id: "legacy-deliverable-0",
       name: "Primary Deliverable",
+      media_type: "document",
       format: text,
       ratio: "",
+      duration: "",
       quantity: "1",
       notes: "",
     },

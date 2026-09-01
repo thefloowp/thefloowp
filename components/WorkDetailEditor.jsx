@@ -15,6 +15,10 @@ const WORK_TYPES = [
   "Other",
 ];
 
+const IMAGE_FORMATS = ["JPG", "JPEG", "PNG", "WEBP", "TIFF", "PSD", "AI", "SVG"];
+const VIDEO_FORMATS = ["MP4", "MOV", "AVI", "MKV", "WEBM", "M4V"];
+const OTHER_FORMATS = ["PDF", "PPTX", "DOCX", "XLSX", "ZIP", "Other"];
+
 export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
   const router = useRouter();
 
@@ -164,19 +168,25 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
           </Field>
 
           <Field label="Request Date">
-            <input
-              type="date"
-              value={form.start_date}
-              onChange={(e) => update("start_date", e.target.value)}
-            />
+            <div className="date-field-wrap">
+              <input
+                className="date-field"
+                type="date"
+                value={form.start_date}
+                onChange={(e) => update("start_date", e.target.value)}
+              />
+            </div>
           </Field>
 
           <Field label="Delivery Deadline">
-            <input
-              type="date"
-              value={form.due_date}
-              onChange={(e) => update("due_date", e.target.value)}
-            />
+            <div className="date-field-wrap">
+              <input
+                className="date-field"
+                type="date"
+                value={form.due_date}
+                onChange={(e) => update("due_date", e.target.value)}
+              />
+            </div>
           </Field>
 
           <Field label="Turnaround Time">
@@ -413,6 +423,35 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
           box-shadow: 0 0 0 3px rgba(0,0,0,.045);
         }
 
+        .date-field-wrap {
+          width: 100%;
+          min-width: 0;
+          overflow: hidden;
+          border: 1px solid #d8d4cd;
+          border-radius: 10px;
+          background: #fff;
+        }
+
+        .date-field-wrap .date-field {
+          width: 100%;
+          min-width: 0;
+          max-width: 100%;
+          box-sizing: border-box;
+          border: 0;
+          border-radius: 0;
+          padding-right: 12px;
+          box-shadow: none !important;
+          background: transparent;
+        }
+
+        .date-field::-webkit-date-and-time-value {
+          text-align: left;
+        }
+
+        .date-field::-webkit-calendar-picker-indicator {
+          flex: 0 0 auto;
+        }
+
         .field-prefix,
         .field-suffix {
           display: grid;
@@ -504,8 +543,8 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
 
         .deliverable-edit-grid {
           display: grid;
-          grid-template-columns: 1.25fr 1fr 1fr .65fr;
-          gap: 10px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
         }
 
         .deliverable-edit-grid label {
@@ -573,15 +612,22 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
         }
 
         .attachment-heading {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: start;
           gap: 18px;
+          margin-bottom: 14px;
+        }
+
+        .attachment-heading .work-edit-section-heading {
+          margin-bottom: 0;
         }
 
         .attachment-actions {
           display: flex;
+          flex-wrap: wrap;
           gap: 8px;
+          align-self: start;
         }
 
         .small-action {
@@ -728,19 +774,50 @@ export default function WorkDetailEditor({ initialItem, teamOptions = [] }) {
           }
 
           .work-edit-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
+          }
+
+          .work-edit-field,
+          .attachment-edit-row,
+          .deliverable-edit-row,
+          .deliverable-edit-grid,
+          .attachment-edit-list,
+          .deliverable-edit-list {
+            min-width: 0;
+          }
+
+          .work-edit-card input,
+          .work-edit-card textarea,
+          .work-edit-card select {
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
           }
 
           .work-edit-field.full {
             grid-column: auto;
           }
 
-          .deliverable-editor-heading,
-          .attachment-heading {
+          .deliverable-editor-heading {
             flex-direction: column;
           }
 
           .deliverable-editor-heading .small-action {
+            width: 100%;
+          }
+
+          .attachment-heading {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+
+          .attachment-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+          }
+
+          .attachment-actions .small-action {
             width: 100%;
           }
 
@@ -817,9 +894,18 @@ function DeliverableEditor({ value, onChange }) {
   function updateItem(index, field, nextValue) {
     onChange(
       JSON.stringify(
-        items.map((item, itemIndex) =>
-          itemIndex === index ? { ...item, [field]: nextValue } : item
-        )
+        items.map((item, itemIndex) => {
+          if (itemIndex !== index) return item;
+
+          const updated = { ...item, [field]: nextValue };
+
+          if (field === "media_type") {
+            updated.format = "";
+            if (nextValue !== "video") updated.duration = "";
+          }
+
+          return updated;
+        })
       )
     );
   }
@@ -838,7 +924,7 @@ function DeliverableEditor({ value, onChange }) {
             <strong>Deliverable {index + 1}</strong>
             <button
               type="button"
-              className="remove-attachment"
+              className="remove-attachment compact-remove"
               onClick={() => removeItem(index)}
             >
               Remove
@@ -847,7 +933,7 @@ function DeliverableEditor({ value, onChange }) {
 
           <div className="deliverable-edit-grid">
             <label>
-              <span>File / output type</span>
+              <span>Output name</span>
               <input
                 value={item.name || ""}
                 onChange={(e) => updateItem(index, "name", e.target.value)}
@@ -856,12 +942,30 @@ function DeliverableEditor({ value, onChange }) {
             </label>
 
             <label>
+              <span>Media type</span>
+              <select
+                value={item.media_type || "image"}
+                onChange={(e) => updateItem(index, "media_type", e.target.value)}
+              >
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+                <option value="document">Document / Other</option>
+              </select>
+            </label>
+
+            <label>
               <span>Format</span>
-              <input
+              <select
                 value={item.format || ""}
                 onChange={(e) => updateItem(index, "format", e.target.value)}
-                placeholder="e.g. PNG, MP4"
-              />
+              >
+                <option value="">Select format</option>
+                {getFormatOptions(item.media_type).map((format) => (
+                  <option key={format} value={format}>
+                    {format}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label>
@@ -872,6 +976,17 @@ function DeliverableEditor({ value, onChange }) {
                 placeholder="e.g. 9:16 or 1080×1920"
               />
             </label>
+
+            {item.media_type === "video" ? (
+              <label>
+                <span>Duration</span>
+                <input
+                  value={item.duration || ""}
+                  onChange={(e) => updateItem(index, "duration", e.target.value)}
+                  placeholder="e.g. 15 sec, 30 sec, 1 min"
+                />
+              </label>
+            ) : null}
 
             <label>
               <span>Quantity</span>
@@ -896,6 +1011,12 @@ function DeliverableEditor({ value, onChange }) {
       ))}
     </div>
   );
+}
+
+function getFormatOptions(mediaType) {
+  if (mediaType === "video") return VIDEO_FORMATS;
+  if (mediaType === "document") return OTHER_FORMATS;
+  return IMAGE_FORMATS;
 }
 
 function TeamMultiSelect({ options, value, onChange }) {
@@ -937,8 +1058,10 @@ function addDeliverable(form, update) {
   items.push({
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: "",
+    media_type: "image",
     format: "",
     ratio: "",
+    duration: "",
     quantity: "1",
     notes: "",
   });
@@ -957,8 +1080,13 @@ function parseDeliverables(value) {
       return parsed.map((item, index) => ({
         id: item.id || `saved-deliverable-${index}`,
         name: String(item.name || ""),
+        media_type:
+          item.media_type === "video" || item.media_type === "document"
+            ? item.media_type
+            : "image",
         format: String(item.format || ""),
         ratio: String(item.ratio || ""),
+        duration: String(item.duration || ""),
         quantity: String(item.quantity || "1"),
         notes: String(item.notes || ""),
       }));
@@ -971,8 +1099,10 @@ function parseDeliverables(value) {
     {
       id: "legacy-deliverable-0",
       name: "Primary Deliverable",
+      media_type: "document",
       format: text,
       ratio: "",
+      duration: "",
       quantity: "1",
       notes: "",
     },

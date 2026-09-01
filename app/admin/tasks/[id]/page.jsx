@@ -79,6 +79,7 @@ export default async function WorkDetailPage({ params, searchParams }) {
   }
 
   const attachments = parseAttachmentItems(item.attachment_links);
+  const clientMessageImages = parseClientMessageImages(item.client_message_images);
 
   return (
     <AdminShell
@@ -198,6 +199,37 @@ export default async function WorkDetailPage({ params, searchParams }) {
             {item.description || "No client brief provided."}
           </div>
         </div>
+
+        {(item.client_message_text || clientMessageImages.length) ? (
+          <div className="work-detail-section">
+            <p className="work-detail-label">Actual Client Message</p>
+
+            {item.client_message_text ? (
+              <div className="client-message-view-text">
+                {item.client_message_text}
+              </div>
+            ) : null}
+
+            {clientMessageImages.length ? (
+              <div className="client-message-image-grid">
+                {clientMessageImages.map((image, index) => (
+                  <a
+                    className="client-message-image-card"
+                    href={image.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    key={`${image.url}-${index}`}
+                  >
+                    <img
+                      src={image.url}
+                      alt={`Client message ${index + 1}`}
+                    />
+                  </a>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {item.notes ? (
           <div className="work-detail-section">
@@ -357,6 +389,40 @@ export default async function WorkDetailPage({ params, searchParams }) {
           font-size: 15px;
           line-height: 1.65;
           white-space: pre-wrap;
+        }
+
+        .client-message-view-text {
+          padding: 16px;
+          border: 1px solid #ddd8d0;
+          border-radius: 11px;
+          background: #faf9f7;
+          color: #4f4a44;
+          font-size: 15px;
+          line-height: 1.65;
+          white-space: pre-wrap;
+        }
+
+        .client-message-image-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 12px;
+        }
+
+        .client-message-image-card {
+          display: block;
+          overflow: hidden;
+          aspect-ratio: 4 / 3;
+          border: 1px solid #ddd8d0;
+          border-radius: 11px;
+          background: #f0eeea;
+        }
+
+        .client-message-image-card img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
 
         .deliverable-view-list {
@@ -519,6 +585,10 @@ export default async function WorkDetailPage({ params, searchParams }) {
           .work-detail-grid {
             grid-template-columns: 1fr;
           }
+
+          .client-message-image-grid {
+            grid-template-columns: 1fr 1fr;
+          }
         }
       `}</style>
     </AdminShell>
@@ -674,6 +744,30 @@ function formatWorkFrom(value, teamOptions) {
     .filter(Boolean);
 
   return names.length ? names.join(", ") : "Selected team members";
+}
+
+function parseClientMessageImages(value) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+
+  try {
+    const parsed = JSON.parse(text);
+
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map((item) => ({
+          url: cleanUrl(item.url),
+        }))
+        .filter((item) => item.url);
+    }
+  } catch {
+    // Legacy text is handled below.
+  }
+
+  return text
+    .split(/[\r\n,]+/)
+    .map((url) => ({ url: cleanUrl(url) }))
+    .filter((item) => item.url);
 }
 
 function parseAttachmentItems(value) {

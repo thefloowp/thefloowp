@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 const STATUS_OPTIONS = [
@@ -371,6 +372,13 @@ export default function TaskHandoverBoard({
 
                     <div className="accept-area">
                       <div className="project-actions">
+                        <Link
+                          className="secondary-button action-link"
+                          href={`/admin/tasks/${item.id}`}
+                        >
+                          View
+                        </Link>
+
                         <button
                           type="button"
                           className="secondary-button"
@@ -510,6 +518,13 @@ export default function TaskHandoverBoard({
                       </select>
 
                       <div className="row-actions">
+                        <Link
+                          className="text-button"
+                          href={`/admin/tasks/${item.id}`}
+                        >
+                          View
+                        </Link>
+
                         <button
                           type="button"
                           className="text-button"
@@ -622,11 +637,17 @@ export default function TaskHandoverBoard({
         }
 
         .secondary-button,
-        .danger-button {
+        .danger-button,
+        .action-link {
           border: 1px solid #d7d2ca;
           border-radius: 999px;
           padding: 9px 14px;
           background: #fff;
+          text-decoration: none;
+          color: inherit;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .danger-button {
@@ -1331,8 +1352,17 @@ function formatDate(value) {
 }
 
 function getLinks(value) {
-  return String(value || "")
-    .split(/\r?\n/)
+  const text = String(value || "").trim();
+  if (!text) return [];
+
+  const urls = text.match(/https?:\/\/[^\s,]+/gi);
+
+  if (urls?.length) {
+    return [...new Set(urls.map((url) => url.trim()))];
+  }
+
+  return text
+    .split(/[\r\n,]+/)
     .map((item) => item.trim())
     .filter(Boolean);
 }

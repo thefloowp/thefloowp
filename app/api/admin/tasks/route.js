@@ -79,6 +79,13 @@ export async function POST(request) {
       turnaround_days:
         Number.isFinite(turnaround) && turnaround >= 0 ? turnaround : null,
       required_file_type: payload.required_file_type?.trim() || "",
+      rate_currency: payload.rate_currency === "USD" ? "USD" : "PHP",
+      rate_amount:
+        payload.rate_amount === "" ||
+        payload.rate_amount === null ||
+        payload.rate_amount === undefined
+          ? null
+          : Number(payload.rate_amount),
       attachment_links: payload.attachment_links?.trim() || "",
       notes: payload.notes?.trim() || "",
       assignee: null,
@@ -134,6 +141,19 @@ export async function PATCH(request) {
 
     if ("required_file_type" in payload) {
       updates.required_file_type = payload.required_file_type || "";
+    }
+
+    if ("rate_currency" in payload) {
+      updates.rate_currency = payload.rate_currency === "USD" ? "USD" : "PHP";
+    }
+
+    if ("rate_amount" in payload) {
+      updates.rate_amount =
+        payload.rate_amount === "" ||
+        payload.rate_amount === null ||
+        payload.rate_amount === undefined
+          ? null
+          : Number(payload.rate_amount);
     }
 
     if ("attachment_links" in payload) {

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 const STATUS_OPTIONS = [
-  "Accepted",
+  "Assigned",
   "In Progress",
   "For Review",
   "Blocked",
@@ -53,7 +53,7 @@ export default function TaskHandoverBoard({
   const [editForm, setEditForm] = useState(blankForm);
 
   const openProjects = useMemo(
-    () => items.filter((item) => !item.assignee || item.status === "Open"),
+    () => items.filter((item) => !item.assignee || item.status === "Unassigned"),
     [items]
   );
 
@@ -62,7 +62,7 @@ export default function TaskHandoverBoard({
       (teamMembers || []).map((name) => ({
         name,
         items: items.filter(
-          (item) => item.assignee === name && item.status !== "Open"
+          (item) => item.assignee === name && item.status !== "Unassigned"
         ),
       })),
     [items, teamMembers]
@@ -209,14 +209,14 @@ export default function TaskHandoverBoard({
 
     patchItem(item.id, {
       assignee: acceptAs,
-      status: "Accepted",
+      status: "Assigned",
     }).then(() => setAcceptingId(""));
   }
 
   function returnToOpen(item) {
     patchItem(item.id, {
       assignee: null,
-      status: "Open",
+      status: "Unassigned",
     });
   }
 
@@ -227,8 +227,8 @@ export default function TaskHandoverBoard({
       <section className="handover-section">
         <div className="handover-section-heading">
           <div>
-            <p className="handover-eyebrow">Available to accept</p>
-            <h2>Open Projects</h2>
+            <p className="handover-eyebrow">Unassigned Client Work</p>
+            <h2>Available Assignments</h2>
           </div>
 
           <button
@@ -236,7 +236,7 @@ export default function TaskHandoverBoard({
             className="primary-button"
             onClick={() => setShowCreate((current) => !current)}
           >
-            {showCreate ? "Close" : "+ New Open Project"}
+            {showCreate ? "Close" : "+ Add Client Request"}
           </button>
         </div>
 
@@ -246,7 +246,7 @@ export default function TaskHandoverBoard({
             updateField={(field, value) => updateForm(field, value)}
             onSubmit={createProject}
             onCancel={() => setShowCreate(false)}
-            submitLabel="Add to Open Projects"
+            submitLabel="Add to Available Assignments"
           />
         ) : null}
 
@@ -293,7 +293,7 @@ export default function TaskHandoverBoard({
                           {item.priority || "Normal"}
                         </span>
 
-                        <span className="status-pill">Open</span>
+                        <span className="status-pill">Unassigned</span>
                       </div>
 
                       <h3>{item.title}</h3>
@@ -306,12 +306,12 @@ export default function TaskHandoverBoard({
                           value={
                             item.due_date
                               ? formatDate(item.due_date)
-                              : "No target date"
+                              : "No delivery deadline"
                           }
                         />
 
                         <Detail
-                          label="Turnaround"
+                          label="Turnaround Time"
                           value={
                             item.turnaround_days !== null &&
                             item.turnaround_days !== undefined &&
@@ -399,7 +399,7 @@ export default function TaskHandoverBoard({
                           ? "Saving..."
                           : acceptingId === item.id
                           ? `Accept as ${acceptAs || "team member"}`
-                          : "Accept Project"}
+                          : "Take Ownership"}
                       </button>
                     </div>
                   </>
@@ -413,8 +413,8 @@ export default function TaskHandoverBoard({
       <section className="handover-section">
         <div className="handover-section-heading">
           <div>
-            <p className="handover-eyebrow">Accepted work</p>
-            <h2>By Person</h2>
+            <p className="handover-eyebrow">Assigned Work</p>
+            <h2>Team Workload</h2>
           </div>
         </div>
 
@@ -435,7 +435,7 @@ export default function TaskHandoverBoard({
 
               <div className="person-projects">
                 {group.items.length === 0 ? (
-                  <p className="person-empty">No accepted projects.</p>
+                  <p className="person-empty">No active assignments.</p>
                 ) : (
                   group.items.map((item) => (
                     <div className="person-project-row" key={item.id}>
@@ -458,8 +458,8 @@ export default function TaskHandoverBoard({
                         <strong>{item.title}</strong>
                         <small>
                           {item.due_date
-                            ? `Submit ${formatDate(item.due_date)}`
-                            : "No target date"}
+                            ? `Delivery ${formatDate(item.due_date)}`
+                            : "No delivery deadline"}
                           {item.turnaround_days !== null &&
                           item.turnaround_days !== undefined &&
                           item.turnaround_days !== ""
@@ -476,7 +476,7 @@ export default function TaskHandoverBoard({
                         value={
                           STATUS_OPTIONS.includes(item.status)
                             ? item.status
-                            : "Accepted"
+                            : "Assigned"
                         }
                         disabled={savingId === item.id}
                         onChange={(event) =>
@@ -516,7 +516,7 @@ export default function TaskHandoverBoard({
                           disabled={savingId === item.id}
                           onClick={() => returnToOpen(item)}
                         >
-                          Return to Open
+                          Return to Unassigned
                         </button>
                       </div>
 
@@ -1109,7 +1109,7 @@ function ProjectForm({
         </label>
 
         <label className="form-wide">
-          <span>Project brief / description *</span>
+          <span>Client Brief *</span>
           <textarea
             rows="4"
             value={form.description}
@@ -1147,7 +1147,7 @@ function ProjectForm({
         </label>
 
         <label>
-          <span>Start / request date</span>
+          <span>Request Date</span>
           <input
             type="date"
             value={form.start_date}
@@ -1156,7 +1156,7 @@ function ProjectForm({
         </label>
 
         <label>
-          <span>Target / submission date *</span>
+          <span>Delivery Deadline *</span>
           <input
             type="date"
             value={form.due_date}
@@ -1166,7 +1166,7 @@ function ProjectForm({
         </label>
 
         <label>
-          <span>Turnaround</span>
+          <span>Turnaround Time</span>
           <div className="input-with-suffix">
             <input
               type="number"
@@ -1179,7 +1179,7 @@ function ProjectForm({
         </label>
 
         <label>
-          <span>Required file type(s)</span>
+          <span>Required Deliverable Format(s)</span>
           <input
             value={form.required_file_type}
             onChange={(e) =>
@@ -1189,7 +1189,7 @@ function ProjectForm({
         </label>
 
         <label className="form-wide">
-          <span>Attachments / reference links</span>
+          <span>Client Files & References</span>
           <textarea
             rows="3"
             value={form.attachment_links}
@@ -1200,7 +1200,7 @@ function ProjectForm({
         </label>
 
         <label className="form-wide">
-          <span>Special instructions / notes</span>
+          <span>Requirements & Notes</span>
           <textarea
             rows="3"
             value={form.notes}

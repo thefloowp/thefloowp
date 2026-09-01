@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdminShell from "@/components/AdminShell";
+import AdminTeamList from "@/components/AdminTeamList";
 import { getMergedTeamMembers } from "@/lib/teamDirectory";
 
 export const dynamic = "force-dynamic";
@@ -20,26 +21,7 @@ export default async function AdminTeamPage() {
       </div>
 
       <section className="admin-panel">
-        <div className="admin-list">
-          {members.map((member) => (
-            <div className="admin-list-row" key={member.slug}>
-              <div>
-                <strong>{member.name}</strong>
-                <span>{member.role}</span>
-              </div>
-
-              <div className="admin-row-actions">
-                <span className="admin-pill">{member.status}</span>
-                <Link
-                  className="admin-text-button"
-                  href={`/admin/team/${member.slug}`}
-                >
-                  Edit →
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+        <AdminTeamList initialMembers={members} />
       </section>
     </AdminShell>
   );

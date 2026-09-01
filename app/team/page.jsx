@@ -1,9 +1,12 @@
 import TeamCard from "@/components/TeamCard";
-import { team } from "@/data/team";
+import { getMergedTeamMembers } from "@/lib/teamDirectory";
 
 export const metadata = { title: "Team" };
+export const dynamic = "force-dynamic";
 
-export default function TeamPage() {
+export default async function TeamPage() {
+  const members = await getMergedTeamMembers();
+
   return (
     <>
       <section className="page-hero">
@@ -16,7 +19,7 @@ export default function TeamPage() {
 
       <section className="section">
         <div className="team-grid">
-          {team.map((member) => (
+          {members.map((member) => (
             <TeamCard member={member} key={member.slug} />
           ))}
         </div>

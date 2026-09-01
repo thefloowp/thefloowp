@@ -17,8 +17,8 @@ export default async function TaskHandoverPage() {
 
   return (
     <AdminShell
-      title="Task Handover"
-      subtitle="Open projects can be accepted by the team. Accepted work is organized below by person and status."
+      title="Work Intake"
+      subtitle="Manage incoming client requests, assign ownership, and track delivery status."
     >
       <TaskHandoverBoard
         initialItems={items}

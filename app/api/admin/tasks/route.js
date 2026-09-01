@@ -47,11 +47,39 @@ export async function POST(request) {
       );
     }
 
+    if (!payload.description?.trim()) {
+      return NextResponse.json(
+        { error: "Project brief / description is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!payload.due_date) {
+      return NextResponse.json(
+        { error: "Target / submission date is required." },
+        { status: 400 }
+      );
+    }
+
+    const turnaround =
+      payload.turnaround_days === "" ||
+      payload.turnaround_days === null ||
+      payload.turnaround_days === undefined
+        ? null
+        : Number(payload.turnaround_days);
+
     const item = await createTaskHandoverItem({
       title: payload.title.trim(),
-      description: payload.description?.trim() || "",
+      description: payload.description.trim(),
+      work_type: payload.work_type?.trim() || "",
       priority: payload.priority || "Normal",
+      start_date: payload.start_date || null,
       due_date: payload.due_date || null,
+      turnaround_days:
+        Number.isFinite(turnaround) && turnaround >= 0 ? turnaround : null,
+      required_file_type: payload.required_file_type?.trim() || "",
+      attachment_links: payload.attachment_links?.trim() || "",
+      notes: payload.notes?.trim() || "",
       assignee: null,
       status: "Open",
     });
@@ -86,8 +114,34 @@ export async function PATCH(request) {
     if ("status" in payload) updates.status = payload.status;
     if ("title" in payload) updates.title = payload.title;
     if ("description" in payload) updates.description = payload.description;
+    if ("work_type" in payload) updates.work_type = payload.work_type || "";
     if ("priority" in payload) updates.priority = payload.priority;
+    if ("start_date" in payload) updates.start_date = payload.start_date || null;
     if ("due_date" in payload) updates.due_date = payload.due_date || null;
+
+    if ("turnaround_days" in payload) {
+      const turnaround =
+        payload.turnaround_days === "" ||
+        payload.turnaround_days === null ||
+        payload.turnaround_days === undefined
+          ? null
+          : Number(payload.turnaround_days);
+
+      updates.turnaround_days =
+        Number.isFinite(turnaround) && turnaround >= 0 ? turnaround : null;
+    }
+
+    if ("required_file_type" in payload) {
+      updates.required_file_type = payload.required_file_type || "";
+    }
+
+    if ("attachment_links" in payload) {
+      updates.attachment_links = payload.attachment_links || "";
+    }
+
+    if ("notes" in payload) {
+      updates.notes = payload.notes || "";
+    }
 
     const item = await updateTaskHandoverItem(payload.id, updates);
     return NextResponse.json({ item });

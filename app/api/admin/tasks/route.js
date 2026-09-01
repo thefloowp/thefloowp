@@ -90,6 +90,8 @@ export async function POST(request) {
           ? null
           : Number(payload.rate_amount),
       attachment_links: payload.attachment_links?.trim() || "",
+      client_message_text: payload.client_message_text?.trim() || "",
+      client_message_images: payload.client_message_images?.trim() || "",
       notes: payload.notes?.trim() || "",
       assignee: null,
       status: "Unassigned",
@@ -167,6 +169,14 @@ export async function PATCH(request) {
 
     if ("attachment_links" in payload) {
       updates.attachment_links = payload.attachment_links || "";
+    }
+
+    if ("client_message_text" in payload) {
+      updates.client_message_text = payload.client_message_text || "";
+    }
+
+    if ("client_message_images" in payload) {
+      updates.client_message_images = payload.client_message_images || "";
     }
 
     if ("notes" in payload) {

@@ -842,7 +842,7 @@ export default function TaskHandoverBoard({
         .attachment-builder-heading > div:first-child {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 5px;
         }
 
         .attachment-builder-title {
@@ -852,9 +852,10 @@ export default function TaskHandoverBoard({
         }
 
         .attachment-builder-heading small {
+          max-width: 620px;
           color: #8a847d;
           font-size: 11px;
-          line-height: 1.4;
+          line-height: 1.45;
         }
 
         .attachment-add-actions {
@@ -864,8 +865,11 @@ export default function TaskHandoverBoard({
         }
 
         .attachment-add-button {
-          min-height: 36px;
-          padding: 0 12px;
+          min-height: 38px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 14px;
           border: 1px solid #d8d4cd;
           border-radius: 999px;
           background: #fff;
@@ -876,56 +880,108 @@ export default function TaskHandoverBoard({
           cursor: pointer;
         }
 
+        .attachment-add-button:hover {
+          border-color: #aaa49c;
+          background: #faf9f7;
+        }
+
         .attachment-fields {
           display: grid;
           gap: 10px;
         }
 
-        .attachment-field-row {
-          display: grid;
-          grid-template-columns: 95px minmax(0, .8fr) minmax(0, 1.2fr) auto;
-          gap: 10px;
-          align-items: end;
-          padding: 12px;
-          border: 1px solid #e2ddd6;
-          border-radius: 12px;
+        .attachment-field-card {
+          padding: 14px;
+          border: 1px solid #ded9d2;
+          border-radius: 13px;
           background: #fff;
         }
 
-        .attachment-type-badge {
-          min-height: 42px;
+        .attachment-field-card-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+
+        .attachment-kind {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          border-radius: 9px;
-          background: #f2f0ec;
+          gap: 8px;
+          color: #4d4944;
           font-size: 11px;
           font-weight: 700;
+          letter-spacing: .04em;
           text-transform: uppercase;
-          letter-spacing: .05em;
+        }
+
+        .attachment-kind svg {
+          width: 16px;
+          height: 16px;
         }
 
         .attachment-remove-button {
-          width: 42px;
-          height: 42px;
+          width: 34px;
+          height: 34px;
           display: inline-grid;
           place-items: center;
-          border: 1px solid #e4c5c0;
+          border: 1px solid #ead0cc;
           border-radius: 9px;
           background: #fffafa;
           color: #9d2d24;
-          font: inherit;
-          font-size: 18px;
           cursor: pointer;
         }
 
+        .attachment-remove-button svg {
+          width: 15px;
+          height: 15px;
+        }
+
+        .attachment-field-inputs {
+          display: grid;
+          grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+          gap: 12px;
+        }
+
         .attachment-empty {
-          padding: 16px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px;
           border: 1px dashed #d8d4cd;
           border-radius: 12px;
-          color: #8a847d;
+          background: #fcfbf9;
+        }
+
+        .attachment-empty-icon {
+          width: 38px;
+          height: 38px;
+          flex: 0 0 38px;
+          display: grid;
+          place-items: center;
+          border-radius: 10px;
+          background: #f0eeea;
+        }
+
+        .attachment-empty-icon svg {
+          width: 17px;
+          height: 17px;
+        }
+
+        .attachment-empty > div:last-child {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .attachment-empty strong {
           font-size: 12px;
-          text-align: center;
+        }
+
+        .attachment-empty span {
+          color: #8a847d;
+          font-size: 11px;
         }
 
         .form-actions {
@@ -1329,12 +1385,16 @@ export default function TaskHandoverBoard({
             flex-direction: column;
           }
 
-          .attachment-field-row {
-            grid-template-columns: 1fr;
+          .attachment-add-actions {
+            width: 100%;
           }
 
-          .attachment-remove-button {
-            width: 100%;
+          .attachment-add-button {
+            flex: 1 1 0;
+          }
+
+          .attachment-field-inputs {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
@@ -1545,7 +1605,13 @@ function AttachmentFields({ value, onChange }) {
   if (!items.length) {
     return (
       <div className="attachment-empty">
-        No client files or references added yet.
+        <div className="attachment-empty-icon">
+          <IconPaperclip />
+        </div>
+        <div>
+          <strong>No files or references yet</strong>
+          <span>Use + Link or + Image to add one.</span>
+        </div>
       </div>
     );
   }
@@ -1566,47 +1632,54 @@ function AttachmentFields({ value, onChange }) {
   return (
     <div className="attachment-fields">
       {items.map((item, index) => (
-        <div className="attachment-field-row" key={item.id || index}>
-          <div className="attachment-type-badge">
-            {item.type === "image" ? "Image" : "Link"}
+        <div className="attachment-field-card" key={item.id || index}>
+          <div className="attachment-field-card-top">
+            <div className="attachment-kind">
+              {item.type === "image" ? <IconImage /> : <IconLink />}
+              <span>{item.type === "image" ? "Image" : "Link"}</span>
+            </div>
+
+            <button
+              type="button"
+              className="attachment-remove-button"
+              onClick={() => removeItem(index)}
+              aria-label={`Remove ${item.title || item.type}`}
+              title="Remove"
+            >
+              <IconTrash />
+            </button>
           </div>
 
-          <label>
-            <span>Title / name</span>
-            <input
-              value={item.title || ""}
-              onChange={(event) =>
-                updateItem(index, "title", event.target.value)
-              }
-              placeholder={
-                item.type === "image"
-                  ? "e.g. Product Reference"
-                  : "e.g. Client Brief"
-              }
-            />
-          </label>
+          <div className="attachment-field-inputs">
+            <label>
+              <span>Title / name</span>
+              <input
+                value={item.title || ""}
+                onChange={(event) =>
+                  updateItem(index, "title", event.target.value)
+                }
+                placeholder={
+                  item.type === "image"
+                    ? "e.g. Product Reference"
+                    : "e.g. Client Brief"
+                }
+              />
+            </label>
 
-          <label>
-            <span>{item.type === "image" ? "Image URL" : "Link URL"}</span>
-            <input
-              value={item.url || ""}
-              onChange={(event) =>
-                updateItem(index, "url", event.target.value)
-              }
-              placeholder="https://..."
-              inputMode="url"
-            />
-          </label>
-
-          <button
-            type="button"
-            className="attachment-remove-button"
-            onClick={() => removeItem(index)}
-            aria-label={`Remove ${item.title || item.type}`}
-            title="Remove"
-          >
-            ×
-          </button>
+            <label>
+              <span>{item.type === "image" ? "Image URL" : "Link URL"}</span>
+              <input
+                value={item.url || ""}
+                onChange={(event) =>
+                  updateItem(index, "url", event.target.value)
+                }
+                placeholder="https://..."
+                inputMode="url"
+                autoCapitalize="none"
+                autoCorrect="off"
+              />
+            </label>
+          </div>
         </div>
       ))}
     </div>
@@ -1662,6 +1735,62 @@ function parseAttachmentItems(value) {
 
 function getAttachments(value) {
   return parseAttachmentItems(value).filter((item) => item.url?.trim());
+}
+
+function IconLink() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconImage() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect
+        x="3"
+        y="4"
+        width="18"
+        height="16"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <circle cx="9" cy="9" r="1.5" fill="currentColor" />
+      <path
+        d="m5 17 4.2-4.2 3.2 3.2 2-2 4.6 4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconPaperclip() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="m8.5 12.5 6.2-6.2a3.2 3.2 0 1 1 4.5 4.5l-8.3 8.3a5 5 0 0 1-7.1-7.1l8.2-8.2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }
 
 function IconEye() {

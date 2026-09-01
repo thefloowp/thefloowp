@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getTeamMember, upsertTeamMember } from "@/lib/teamAdmin";
+import { team as fallbackTeam } from "@/data/team";
+import {
+  getTeamMember,
+  softDeleteTeamMember,
+  upsertTeamMember,
+} from "@/lib/teamAdmin";
 
 async function isAuthorized() {
   const store = await cookies();
@@ -41,23 +46,14 @@ export async function POST(request, { params }) {
     const payload = await request.json();
 
     if (!payload.name?.trim()) {
-      return NextResponse.json(
-        { error: "Name is required." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Name is required." }, { status: 400 });
     }
 
     if (!payload.role?.trim()) {
-      return NextResponse.json(
-        { error: "Role is required." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Role is required." }, { status: 400 });
     }
 
-    const cleanSlug =
-      slug === "new"
-        ? makeSlug(payload.name)
-        : slug;
+    const cleanSlug = slug === "new" ? makeSlug(payload.name) : slug;
 
     const member = await upsertTeamMember(cleanSlug, {
       name: payload.name.trim(),
@@ -74,6 +70,32 @@ export async function POST(request, { params }) {
   } catch (error) {
     return NextResponse.json(
       { error: error.message || "Unable to save team member." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(_request, { params }) {
+  if (!(await isAuthorized())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { slug } = await params;
+
+  try {
+    const fallbackIndex = fallbackTeam.findIndex((member) => member.slug === slug);
+    const fallback = fallbackIndex >= 0 ? fallbackTeam[fallbackIndex] : null;
+
+    await softDeleteTeamMember(slug, {
+      name: fallback?.name || "",
+      role: fallback?.role || "",
+      display_order: fallbackIndex >= 0 ? fallbackIndex + 1 : 999,
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error.message || "Unable to delete team member." },
       { status: 500 }
     );
   }

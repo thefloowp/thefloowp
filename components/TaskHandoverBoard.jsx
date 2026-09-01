@@ -26,6 +26,7 @@ const WORK_TYPES = [
 export default function TaskHandoverBoard({
   initialItems,
   teamMembers,
+  teamOptions = [],
   loadError = "",
 }) {
   const [items, setItems] = useState(initialItems || []);
@@ -46,6 +47,7 @@ export default function TaskHandoverBoard({
     due_date: "",
     turnaround_days: "",
     required_file_type: "",
+    work_from: [],
     rate_currency: "PHP",
     rate_amount: "",
     attachment_links: "",
@@ -91,27 +93,7 @@ export default function TaskHandoverBoard({
   }
 
   function startEdit(item) {
-    setEditingId(item.id);
-    setEditForm({
-      title: item.title || "",
-      description: item.description || "",
-      work_type: item.work_type || "",
-      priority: item.priority || "Normal",
-      start_date: item.start_date || "",
-      due_date: item.due_date || "",
-      turnaround_days:
-        item.turnaround_days === null || item.turnaround_days === undefined
-          ? ""
-          : String(item.turnaround_days),
-      required_file_type: item.required_file_type || "",
-      rate_currency: item.rate_currency || "PHP",
-      rate_amount:
-        item.rate_amount === null || item.rate_amount === undefined
-          ? ""
-          : String(item.rate_amount),
-      attachment_links: item.attachment_links || "",
-      notes: item.notes || "",
-    });
+    window.location.href = `/admin/tasks/${item.id}?edit=1`;
   }
 
   async function createProject(event) {
@@ -332,8 +314,13 @@ export default function TaskHandoverBoard({
                         />
 
                         <Detail
-                          label="File type"
-                          value={item.required_file_type || "Not specified"}
+                          label="Deliverables"
+                          value={formatDeliverableSummary(item.required_file_type)}
+                        />
+
+                        <Detail
+                          label="Work From"
+                          value={formatWorkFrom(item.work_from, teamOptions)}
                         />
 
                         <Detail
@@ -500,8 +487,12 @@ export default function TaskHandoverBoard({
                           item.turnaround_days !== ""
                             ? ` • ${item.turnaround_days}d turnaround`
                             : ""}
-                          {item.required_file_type
-                            ? ` • ${item.required_file_type}`
+                          {getDeliverables(item.required_file_type).length
+                            ? ` • ${getDeliverables(item.required_file_type).length} deliverable${
+                                getDeliverables(item.required_file_type).length === 1
+                                  ? ""
+                                  : "s"
+                              }`
                             : ""}
                           {item.rate_amount !== null &&
                           item.rate_amount !== undefined &&
@@ -824,6 +815,153 @@ export default function TaskHandoverBoard({
           color: #77726b;
           font-size: 12px;
           font-weight: 400;
+        }
+
+        .deliverable-builder,
+        .work-from-field {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .deliverable-builder-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .deliverable-builder-heading > div,
+        .work-from-field {
+          min-width: 0;
+        }
+
+        .deliverable-builder-title,
+        .work-from-title {
+          font-size: 12px;
+          font-weight: 700;
+          color: #26231f;
+        }
+
+        .deliverable-builder-heading small,
+        .work-from-field > small {
+          color: #8a847d;
+          font-size: 11px;
+          line-height: 1.45;
+        }
+
+        .deliverable-add-button {
+          min-height: 38px;
+          flex: 0 0 auto;
+          padding: 0 14px;
+          border: 1px solid #d8d4cd;
+          border-radius: 999px;
+          background: #fff;
+          color: #111;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .deliverable-list {
+          display: grid;
+          gap: 10px;
+        }
+
+        .deliverable-card {
+          padding: 14px;
+          border: 1px solid #ded9d2;
+          border-radius: 13px;
+          background: #fff;
+        }
+
+        .deliverable-card-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+
+        .deliverable-number {
+          color: #5d5851;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: .05em;
+          text-transform: uppercase;
+        }
+
+        .deliverable-remove-button {
+          width: 34px;
+          height: 34px;
+          display: grid;
+          place-items: center;
+          border: 1px solid #ead0cc;
+          border-radius: 9px;
+          background: #fffafa;
+          color: #9d2d24;
+          font: inherit;
+          cursor: pointer;
+        }
+
+        .deliverable-fields-grid {
+          display: grid;
+          grid-template-columns: 1.25fr 1fr 1fr .65fr;
+          gap: 12px;
+        }
+
+        .deliverable-notes-field {
+          grid-column: 1 / -1;
+        }
+
+        .deliverable-empty {
+          padding: 16px;
+          border: 1px dashed #d8d4cd;
+          border-radius: 12px;
+          background: #fcfbf9;
+          color: #8a847d;
+          font-size: 12px;
+          text-align: center;
+        }
+
+        .team-multi-select {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .team-choice {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 38px;
+          padding: 0 12px;
+          border: 1px solid #d8d4cd;
+          border-radius: 999px;
+          background: #fff;
+          color: #38342f;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .team-choice.is-selected {
+          border-color: #111;
+          background: #111;
+          color: #fff;
+        }
+
+        .team-choice-mark {
+          width: 16px;
+          height: 16px;
+          display: grid;
+          place-items: center;
+          border: 1px solid currentColor;
+          border-radius: 50%;
+          font-size: 10px;
+          line-height: 1;
         }
 
         .attachment-builder {
@@ -1381,8 +1519,21 @@ export default function TaskHandoverBoard({
             width: 100%;
           }
 
+          .deliverable-builder-heading,
           .attachment-builder-heading {
             flex-direction: column;
+          }
+
+          .deliverable-add-button {
+            width: 100%;
+          }
+
+          .deliverable-fields-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .deliverable-notes-field {
+            grid-column: auto;
           }
 
           .attachment-add-actions {
@@ -1492,15 +1643,48 @@ function ProjectForm({
           </div>
         </label>
 
-        <label>
-          <span>Required Deliverable Format(s)</span>
-          <input
+        <div className="form-wide deliverable-builder">
+          <div className="deliverable-builder-heading">
+            <div>
+              <span className="deliverable-builder-title">
+                Required Deliverables
+              </span>
+              <small>
+                Add each requested output separately with its file type,
+                format, dimensions or ratio, quantity, and notes.
+              </small>
+            </div>
+
+            <button
+              type="button"
+              className="deliverable-add-button"
+              onClick={() => addDeliverable(form, updateField)}
+            >
+              + Add Deliverable
+            </button>
+          </div>
+
+          <DeliverableFields
             value={form.required_file_type}
-            onChange={(e) =>
-              updateField("required_file_type", e.target.value)
+            onChange={(nextValue) =>
+              updateField("required_file_type", nextValue)
             }
           />
-        </label>
+        </div>
+
+        <div className="form-wide work-from-field">
+          <span className="work-from-title">Work From</span>
+          <small>
+            Select one or more preferred team members for this work. This does
+            not assign ownership until someone takes ownership.
+          </small>
+
+          <TeamMultiSelect
+            options={teamOptions}
+            value={form.work_from}
+            onChange={(nextValue) => updateField("work_from", nextValue)}
+          />
+        </div>
 
         <label>
           <span>Rate Currency</span>
@@ -1597,6 +1781,216 @@ function ProjectForm({
       </div>
     </form>
   );
+}
+
+function DeliverableFields({ value, onChange }) {
+  const items = parseDeliverables(value);
+
+  if (!items.length) {
+    return (
+      <div className="deliverable-empty">
+        No deliverables added yet. Tap “+ Add Deliverable” to add the first one.
+      </div>
+    );
+  }
+
+  function updateItem(index, field, nextValue) {
+    const next = items.map((item, itemIndex) =>
+      itemIndex === index ? { ...item, [field]: nextValue } : item
+    );
+    onChange(JSON.stringify(next));
+  }
+
+  function removeItem(index) {
+    onChange(
+      JSON.stringify(items.filter((_, itemIndex) => itemIndex !== index))
+    );
+  }
+
+  return (
+    <div className="deliverable-list">
+      {items.map((item, index) => (
+        <div className="deliverable-card" key={item.id || index}>
+          <div className="deliverable-card-top">
+            <span className="deliverable-number">
+              Deliverable {index + 1}
+            </span>
+
+            <button
+              type="button"
+              className="deliverable-remove-button"
+              onClick={() => removeItem(index)}
+              aria-label={`Remove deliverable ${index + 1}`}
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="deliverable-fields-grid">
+            <label>
+              <span>File / output type</span>
+              <input
+                value={item.name || ""}
+                onChange={(e) => updateItem(index, "name", e.target.value)}
+                placeholder="e.g. Social Media Key Visual"
+              />
+            </label>
+
+            <label>
+              <span>Format</span>
+              <input
+                value={item.format || ""}
+                onChange={(e) => updateItem(index, "format", e.target.value)}
+                placeholder="e.g. PNG, JPG, MP4"
+              />
+            </label>
+
+            <label>
+              <span>Ratio / dimensions</span>
+              <input
+                value={item.ratio || ""}
+                onChange={(e) => updateItem(index, "ratio", e.target.value)}
+                placeholder="e.g. 1:1 or 1080×1080"
+              />
+            </label>
+
+            <label>
+              <span>Quantity</span>
+              <input
+                type="number"
+                min="1"
+                value={item.quantity || "1"}
+                onChange={(e) => updateItem(index, "quantity", e.target.value)}
+              />
+            </label>
+
+            <label className="deliverable-notes-field">
+              <span>Deliverable notes</span>
+              <input
+                value={item.notes || ""}
+                onChange={(e) => updateItem(index, "notes", e.target.value)}
+                placeholder="e.g. Editable source file also required"
+              />
+            </label>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TeamMultiSelect({ options, value, onChange }) {
+  const selected = Array.isArray(value) ? value : [];
+
+  function toggle(slug) {
+    if (selected.includes(slug)) {
+      onChange(selected.filter((item) => item !== slug));
+    } else {
+      onChange([...selected, slug]);
+    }
+  }
+
+  if (!options?.length) {
+    return <div className="deliverable-empty">No active team members found.</div>;
+  }
+
+  return (
+    <div className="team-multi-select">
+      {options.map((member) => {
+        const active = selected.includes(member.slug);
+
+        return (
+          <button
+            key={member.slug}
+            type="button"
+            className={`team-choice ${active ? "is-selected" : ""}`}
+            onClick={() => toggle(member.slug)}
+            aria-pressed={active}
+          >
+            <span className="team-choice-mark">{active ? "✓" : ""}</span>
+            <span>{member.name}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function addDeliverable(form, updateField) {
+  const items = parseDeliverables(form.required_file_type);
+
+  items.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: "",
+    format: "",
+    ratio: "",
+    quantity: "1",
+    notes: "",
+  });
+
+  updateField("required_file_type", JSON.stringify(items));
+}
+
+function parseDeliverables(value) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+
+  try {
+    const parsed = JSON.parse(text);
+
+    if (Array.isArray(parsed)) {
+      return parsed.map((item, index) => ({
+        id: item.id || `saved-deliverable-${index}`,
+        name: String(item.name || ""),
+        format: String(item.format || ""),
+        ratio: String(item.ratio || ""),
+        quantity: String(item.quantity || "1"),
+        notes: String(item.notes || ""),
+      }));
+    }
+  } catch {
+    // Legacy text becomes one deliverable.
+  }
+
+  return [
+    {
+      id: "legacy-deliverable-0",
+      name: "Primary Deliverable",
+      format: text,
+      ratio: "",
+      quantity: "1",
+      notes: "",
+    },
+  ];
+}
+
+function getDeliverables(value) {
+  return parseDeliverables(value).filter(
+    (item) => item.name || item.format || item.ratio || item.notes
+  );
+}
+
+function formatDeliverableSummary(value) {
+  const items = getDeliverables(value);
+
+  if (!items.length) return "Not specified";
+  if (items.length === 1) {
+    const item = items[0];
+    return [item.name, item.format, item.ratio].filter(Boolean).join(" • ");
+  }
+
+  return `${items.length} deliverables`;
+}
+
+function formatWorkFrom(value, teamOptions) {
+  const slugs = Array.isArray(value) ? value : [];
+  if (!slugs.length) return "Any team member";
+
+  const names = slugs
+    .map((slug) => teamOptions.find((member) => member.slug === slug)?.name)
+    .filter(Boolean);
+
+  return names.length ? names.join(", ") : "Selected team members";
 }
 
 function AttachmentFields({ value, onChange }) {

@@ -50,6 +50,10 @@ export default async function WorkIntakePage() {
       <TaskHandoverBoard
         initialItems={items}
         teamMembers={members.map((member) => member.name)}
+        teamOptions={members.map((member) => ({
+          slug: member.slug,
+          name: member.name,
+        }))}
         loadError={loadError}
       />
     </AdminShell>

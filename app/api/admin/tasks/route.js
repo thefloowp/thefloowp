@@ -79,6 +79,9 @@ export async function POST(request) {
       turnaround_days:
         Number.isFinite(turnaround) && turnaround >= 0 ? turnaround : null,
       required_file_type: payload.required_file_type?.trim() || "",
+      work_from: Array.isArray(payload.work_from)
+        ? payload.work_from.filter(Boolean)
+        : [],
       rate_currency: payload.rate_currency === "USD" ? "USD" : "PHP",
       rate_amount:
         payload.rate_amount === "" ||
@@ -141,6 +144,12 @@ export async function PATCH(request) {
 
     if ("required_file_type" in payload) {
       updates.required_file_type = payload.required_file_type || "";
+    }
+
+    if ("work_from" in payload) {
+      updates.work_from = Array.isArray(payload.work_from)
+        ? payload.work_from.filter(Boolean)
+        : [];
     }
 
     if ("rate_currency" in payload) {

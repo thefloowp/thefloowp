@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const navItems = [
   ["Dashboard", "/admin"],
+  ["Task Handover", "/admin/tasks"],
   ["Pages", "/admin/pages"],
   ["Projects", "/admin/projects"],
   ["Team", "/admin/team"],
@@ -30,6 +31,11 @@ export default function AdminShell({ title, subtitle, children }) {
         </nav>
 
         <div className="admin-sidebar-footer">
+          <form action="/api/admin/logout" method="post">
+            <button className="admin-logout-button" type="submit">
+              Log out
+            </button>
+          </form>
           <Link href="/">View public site ↗</Link>
         </div>
       </aside>
@@ -44,6 +50,25 @@ export default function AdminShell({ title, subtitle, children }) {
         </header>
 
         <div className="admin-content">{children}</div>
+
+        <style>{`
+          .admin-sidebar-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+          .admin-logout-button {
+            appearance: none;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            font: inherit;
+            cursor: pointer;
+            text-align: left;
+          }
+          .admin-logout-button:hover { text-decoration: underline; }
+        `}</style>
       </div>
     </div>
   );

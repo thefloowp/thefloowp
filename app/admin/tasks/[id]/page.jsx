@@ -158,11 +158,23 @@ export default async function WorkDetailPage({ params, searchParams }) {
                       </strong>
 
                       <div className="deliverable-view-meta">
+                        {deliverable.media_type ? (
+                          <span>
+                            {deliverable.media_type === "video"
+                              ? "Video"
+                              : deliverable.media_type === "document"
+                              ? "Document"
+                              : "Image"}
+                          </span>
+                        ) : null}
                         {deliverable.format ? (
                           <span>{deliverable.format}</span>
                         ) : null}
                         {deliverable.ratio ? (
                           <span>{deliverable.ratio}</span>
+                        ) : null}
+                        {deliverable.duration ? (
+                          <span>{deliverable.duration}</span>
                         ) : null}
                         {deliverable.quantity ? (
                           <span>Qty {deliverable.quantity}</span>
@@ -616,8 +628,13 @@ function parseDeliverables(value) {
       return parsed
         .map((item) => ({
           name: String(item.name || ""),
+          media_type:
+            item.media_type === "video" || item.media_type === "document"
+              ? item.media_type
+              : "image",
           format: String(item.format || ""),
           ratio: String(item.ratio || ""),
+          duration: String(item.duration || ""),
           quantity: String(item.quantity || "1"),
           notes: String(item.notes || ""),
         }))
@@ -632,8 +649,10 @@ function parseDeliverables(value) {
   return [
     {
       name: "Primary Deliverable",
+      media_type: "document",
       format: text,
       ratio: "",
+      duration: "",
       quantity: "1",
       notes: "",
     },

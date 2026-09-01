@@ -235,7 +235,7 @@ export default function TaskHandoverBoard({
         <div className="handover-section-heading">
           <div>
             <p className="handover-eyebrow">Unassigned Client Work</p>
-            <h2>Available Assignments</h2>
+            <h2>Available Work</h2>
           </div>
 
           <button
@@ -253,7 +253,7 @@ export default function TaskHandoverBoard({
             updateField={(field, value) => updateForm(field, value)}
             onSubmit={createProject}
             onCancel={() => setShowCreate(false)}
-            submitLabel="Add to Available Assignments"
+            submitLabel="Add to Available Work"
           />
         ) : null}
 
@@ -425,7 +425,7 @@ export default function TaskHandoverBoard({
       <section className="handover-section">
         <div className="handover-section-heading">
           <div>
-            <p className="handover-eyebrow">Assigned Work</p>
+            <p className="handover-eyebrow">Active Work</p>
             <h2>Team Workload</h2>
           </div>
         </div>

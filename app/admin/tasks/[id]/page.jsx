@@ -1,21 +1,88 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import AdminShell from "@/components/AdminShell";
-import { getTaskHandoverItem } from "@/lib/taskHandover";
+import { getTaskHandoverItems } from "@/lib/taskHandover";
 
 export const dynamic = "force-dynamic";
 
 export default async function WorkDetailPage({ params }) {
   const { id } = await params;
-  const item = await getTaskHandoverItem(id);
 
-  if (!item) notFound();
+  let item = null;
+  let loadError = "";
+
+  try {
+    const items = await getTaskHandoverItems();
+    item = items.find((entry) => String(entry.id) === String(id)) || null;
+  } catch (error) {
+    loadError = error?.message || "Unable to load this work item.";
+  }
+
+  if (loadError) {
+    return (
+      <AdminShell
+        title="Work Details"
+        subtitle="Unable to load this work item right now."
+      >
+        <div className="work-error-card">
+          <strong>Could not load this work item.</strong>
+          <p>{loadError}</p>
+          <Link className="admin-btn admin-btn-secondary" href="/admin/tasks">
+            ← Back to Work Intake
+          </Link>
+        </div>
+
+        <style>{`
+          .work-error-card {
+            padding: 22px;
+            border: 1px solid #e3b6ad;
+            border-radius: 14px;
+            background: #fff1ee;
+            color: #8e2d20;
+          }
+
+          .work-error-card p {
+            margin: 8px 0 18px;
+            overflow-wrap: anywhere;
+          }
+        `}</style>
+      </AdminShell>
+    );
+  }
+
+  if (!item) {
+    return (
+      <AdminShell
+        title="Work Not Found"
+        subtitle="This work item may have been deleted or is no longer available."
+      >
+        <div className="work-not-found-card">
+          <p>The requested work item could not be found.</p>
+          <Link className="admin-btn admin-btn-secondary" href="/admin/tasks">
+            ← Back to Work Intake
+          </Link>
+        </div>
+
+        <style>{`
+          .work-not-found-card {
+            padding: 22px;
+            border: 1px solid #ddd9d2;
+            border-radius: 14px;
+            background: #fff;
+          }
+
+          .work-not-found-card p {
+            margin: 0 0 18px;
+          }
+        `}</style>
+      </AdminShell>
+    );
+  }
 
   const links = extractLinks(item.attachment_links);
 
   return (
     <AdminShell
-      title={item.title}
+      title={item.title || "Work Details"}
       subtitle="Client work details, requirements, files, ownership, and delivery information."
     >
       <div className="work-detail-toolbar">
@@ -23,14 +90,14 @@ export default async function WorkDetailPage({ params }) {
           ← Back to Work Intake
         </Link>
 
-        <span className="work-detail-status">{item.status}</span>
+        <span className="work-detail-status">{item.status || "Unassigned"}</span>
       </div>
 
       <section className="work-detail-card">
         <div className="work-detail-header">
           <div>
             <p className="work-detail-eyebrow">Client Work</p>
-            <h2>{item.title}</h2>
+            <h2>{item.title || "Untitled Work"}</h2>
           </div>
 
           <div className="work-detail-tags">
@@ -43,22 +110,15 @@ export default async function WorkDetailPage({ params }) {
           <Detail label="Owner" value={item.assignee || "Unassigned"} />
           <Detail
             label="Request Date"
-            value={item.start_date ? formatDate(item.start_date) : "Not set"}
+            value={safeFormatDate(item.start_date)}
           />
           <Detail
             label="Delivery Deadline"
-            value={item.due_date ? formatDate(item.due_date) : "Not set"}
+            value={safeFormatDate(item.due_date)}
           />
           <Detail
             label="Turnaround"
-            value={
-              item.turnaround_days === null ||
-              item.turnaround_days === undefined
-                ? "Not set"
-                : `${item.turnaround_days} day${
-                    Number(item.turnaround_days) === 1 ? "" : "s"
-                  }`
-            }
+            value={formatTurnaround(item.turnaround_days)}
           />
           <Detail
             label="Deliverable Format"
@@ -97,11 +157,12 @@ export default async function WorkDetailPage({ params }) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <span>
+                  <span className="work-link-copy">
                     <strong>Reference {index + 1}</strong>
                     <small>{shortenLink(link)}</small>
                   </span>
-                  <span>Open ↗</span>
+
+                  <span className="work-link-open">Open ↗</span>
                 </a>
               ))}
             </div>
@@ -246,21 +307,28 @@ export default async function WorkDetailPage({ params }) {
           border: 1px solid #ddd8d0;
           border-radius: 12px;
           background: #faf9f7;
+          color: inherit;
           text-decoration: none;
         }
 
-        .work-link-card > span:first-child {
+        .work-link-copy {
           min-width: 0;
           display: flex;
           flex-direction: column;
           gap: 4px;
         }
 
-        .work-link-card small {
+        .work-link-copy small {
           overflow: hidden;
+          max-width: 620px;
           color: #817b73;
           text-overflow: ellipsis;
           white-space: nowrap;
+        }
+
+        .work-link-open {
+          white-space: nowrap;
+          font-weight: 700;
         }
 
         .work-detail-empty {
@@ -293,6 +361,12 @@ export default async function WorkDetailPage({ params }) {
             align-items: flex-start;
             flex-direction: column;
           }
+
+          .work-link-copy small {
+            max-width: 100%;
+            white-space: normal;
+            overflow-wrap: anywhere;
+          }
         }
       `}</style>
     </AdminShell>
@@ -310,19 +384,41 @@ function Detail({ label, value }) {
 
 function extractLinks(value) {
   const text = String(value || "").trim();
-  if (!text) return [];
 
-  const urls = text.match(/https?:\/\/[^\s,]+/gi);
+  if (!text) {
+    return [];
+  }
 
-  if (urls?.length) {
-    return [...new Set(urls.map((url) => url.trim()))];
+  const matches = text.match(/https?:\/\/[^\s,]+/gi);
+
+  if (matches?.length) {
+    return [...new Set(matches.map(cleanUrl).filter(Boolean))];
   }
 
   return text
     .split(/[\r\n,]+/)
     .map((item) => item.trim())
     .filter(Boolean)
-    .map((item) => (/^https?:\/\//i.test(item) ? item : `https://${item}`));
+    .map((item) => cleanUrl(item))
+    .filter(Boolean);
+}
+
+function cleanUrl(value) {
+  const raw = String(value || "")
+    .trim()
+    .replace(/[)\]}>.,;]+$/g, "");
+
+  if (!raw) return "";
+
+  const normalized = /^https?:\/\//i.test(raw)
+    ? raw
+    : `https://${raw}`;
+
+  try {
+    return new URL(normalized).toString();
+  } catch {
+    return "";
+  }
 }
 
 function shortenLink(value) {
@@ -334,8 +430,14 @@ function shortenLink(value) {
   }
 }
 
-function formatDate(value) {
+function safeFormatDate(value) {
+  if (!value) return "Not set";
+
   const date = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not set";
+  }
 
   return new Intl.DateTimeFormat("en-PH", {
     month: "short",
@@ -344,13 +446,30 @@ function formatDate(value) {
   }).format(date);
 }
 
+function formatTurnaround(value) {
+  if (value === null || value === undefined || value === "") {
+    return "Not set";
+  }
+
+  const days = Number(value);
+
+  if (!Number.isFinite(days)) {
+    return "Not set";
+  }
+
+  return `${days} day${days === 1 ? "" : "s"}`;
+}
+
 function formatRate(currency, amount) {
   if (amount === null || amount === undefined || amount === "") {
     return "Not set";
   }
 
   const numeric = Number(amount);
-  if (!Number.isFinite(numeric)) return "Not set";
+
+  if (!Number.isFinite(numeric)) {
+    return "Not set";
+  }
 
   const code = currency === "USD" ? "USD" : "PHP";
 

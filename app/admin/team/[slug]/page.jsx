@@ -1,57 +1,83 @@
 import Link from "next/link";
 import AdminShell from "@/components/AdminShell";
+import TeamEditor from "@/components/TeamEditor";
+import { getTeamMember } from "@/lib/teamAdmin";
 
-const teamData = {
+const fallbackTeam = {
   "francesca-navarro": {
     name: "Francesca Navarro",
     role: "Creative Direction & Marketing",
-    photo: "",
-    order: 1,
-    bio: "Works across brand strategy, creative direction, campaign planning, e-commerce, and connected marketing execution.",
+    photo_url: "",
+    display_order: 1,
+    bio:
+      "Works across brand strategy, creative direction, campaign planning, e-commerce, and connected marketing execution.",
     expertise:
       "Creative Direction, Brand Strategy, Campaign Strategy, E-Commerce, Growth Marketing",
+    social_url: "",
+    status: "Active",
   },
   "alex-rivera": {
     name: "Alex Rivera",
     role: "Design & Brand Systems",
-    photo: "",
-    order: 2,
-    bio: "Builds visual systems and campaign identities that keep brands clear, consistent, and adaptable across touchpoints.",
+    photo_url: "",
+    display_order: 2,
+    bio:
+      "Builds visual systems and campaign identities that keep brands clear, consistent, and adaptable across touchpoints.",
     expertise:
       "Brand Identity, Graphic Design, Campaign Design, Art Direction, Visual Systems",
+    social_url: "",
+    status: "Active",
   },
   "sam-lee": {
     name: "Sam Lee",
     role: "Content & Digital",
-    photo: "",
-    order: 3,
-    bio: "Shapes content into platform-ready stories designed for attention, relevance, and continuous iteration.",
+    photo_url: "",
+    display_order: 3,
+    bio:
+      "Shapes content into platform-ready stories designed for attention, relevance, and continuous iteration.",
     expertise:
       "Content Strategy, Social Media, Performance Creative, Video Direction, Digital Campaigns",
+    social_url: "",
+    status: "Active",
   },
 };
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminTeamEditor({ params }) {
   const { slug } = await params;
   const isNew = slug === "new";
 
-  const member = isNew
+  let member = isNew
     ? {
         name: "",
         role: "",
-        photo: "",
-        order: 1,
+        photo_url: "",
+        display_order: 1,
         bio: "",
         expertise: "",
+        social_url: "",
+        status: "Active",
       }
-    : teamData[slug] || {
+    : fallbackTeam[slug] || {
         name: "",
         role: "",
-        photo: "",
-        order: 1,
+        photo_url: "",
+        display_order: 1,
         bio: "",
         expertise: "",
+        social_url: "",
+        status: "Active",
       };
+
+  if (!isNew) {
+    try {
+      const saved = await getTeamMember(slug);
+      if (saved) member = saved;
+    } catch {
+      // Keep fallback data if Supabase has not been initialized yet.
+    }
+  }
 
   return (
     <AdminShell
@@ -64,55 +90,14 @@ export default async function AdminTeamEditor({ params }) {
         </Link>
       </div>
 
-      <section className="admin-panel">
-        <div className="admin-form-grid">
-          <label>
-            <span>Name</span>
-            <input defaultValue={member.name} placeholder="Full name" />
-          </label>
-
-          <label>
-            <span>Role</span>
-            <input defaultValue={member.role} placeholder="Role / discipline" />
-          </label>
-
-          <label>
-            <span>Profile photo URL</span>
-            <input
-              defaultValue={member.photo}
-              placeholder="https://..."
-              type="url"
-            />
-          </label>
-
-          <label>
-            <span>Display order</span>
-            <input defaultValue={member.order} min="1" type="number" />
-          </label>
-
-          <label className="admin-full-field">
-            <span>Short bio</span>
-            <textarea defaultValue={member.bio} rows="4" />
-          </label>
-
-          <label className="admin-full-field">
-            <span>Expertise</span>
-            <input defaultValue={member.expertise} />
-          </label>
-
-          <label className="admin-full-field">
-            <span>Social / portfolio link</span>
-            <input placeholder="https://..." type="url" />
-          </label>
-        </div>
-      </section>
+      <TeamEditor initialMember={member} slug={slug} />
 
       <section className="admin-panel admin-panel-soft">
         <p className="admin-eyebrow">Portfolio relationship</p>
         <h2>Assigned projects will appear automatically.</h2>
         <p className="admin-body-copy">
-          Once the data layer is connected, projects assigned to this member
-          will populate their public portfolio automatically.
+          Projects associated with this member can be surfaced in their public
+          portfolio without storing unsaved edits in the browser.
         </p>
       </section>
     </AdminShell>

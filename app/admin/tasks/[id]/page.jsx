@@ -1,79 +1,79 @@
 import Link from "next/link";
 import AdminShell from "@/components/AdminShell";
+import WorkDetailEditor from "@/components/WorkDetailEditor";
 import { getTaskHandoverItems } from "@/lib/taskHandover";
+import { getMergedTeamMembers } from "@/lib/teamDirectory";
 
 export const dynamic = "force-dynamic";
 
-export default async function WorkDetailPage({ params }) {
+export default async function WorkDetailPage({ params, searchParams }) {
   const { id } = await params;
+  const query = await searchParams;
+  const isEditing = query?.edit === "1";
 
   let item = null;
+  let teamOptions = [];
   let loadError = "";
 
   try {
-    const items = await getTaskHandoverItems();
+    const [items, members] = await Promise.all([
+      getTaskHandoverItems(),
+      getMergedTeamMembers(),
+    ]);
+
     item = items.find((entry) => String(entry.id) === String(id)) || null;
+    teamOptions = members.map((member) => ({
+      slug: member.slug,
+      name: member.name,
+    }));
   } catch (error) {
     loadError = error?.message || "Unable to load this work item.";
   }
 
-  if (loadError) {
+  if (loadError || !item) {
     return (
       <AdminShell
         title="Work Details"
-        subtitle="Unable to load this work item right now."
+        subtitle={loadError || "This work item could not be found."}
       >
-        <div className="work-error-card">
-          <strong>Could not load this work item.</strong>
-          <p>{loadError}</p>
+        <section className="detail-state-card">
+          <p>{loadError || "The requested work item is no longer available."}</p>
           <Link className="admin-btn admin-btn-secondary" href="/admin/tasks">
             ← Back to Work Intake
           </Link>
-        </div>
+        </section>
 
         <style>{`
-          .work-error-card {
+          .detail-state-card {
             padding: 22px;
-            border: 1px solid #e3b6ad;
+            border: 1px solid #ddd9d2;
             border-radius: 14px;
-            background: #fff1ee;
-            color: #8e2d20;
-          }
-
-          .work-error-card p {
-            margin: 8px 0 18px;
-            overflow-wrap: anywhere;
+            background: #fff;
           }
         `}</style>
       </AdminShell>
     );
   }
 
-  if (!item) {
+  if (isEditing) {
     return (
       <AdminShell
-        title="Work Not Found"
-        subtitle="This work item may have been deleted or is no longer available."
+        title={`Edit ${item.title}`}
+        subtitle="Update the complete client work record."
       >
-        <div className="work-not-found-card">
-          <p>The requested work item could not be found.</p>
-          <Link className="admin-btn admin-btn-secondary" href="/admin/tasks">
-            ← Back to Work Intake
+        <div className="work-detail-toolbar">
+          <Link
+            className="admin-btn admin-btn-secondary"
+            href={`/admin/tasks/${item.id}`}
+          >
+            ← Back to View
           </Link>
+          <span className="work-detail-status">{item.status || "Unassigned"}</span>
         </div>
 
-        <style>{`
-          .work-not-found-card {
-            padding: 22px;
-            border: 1px solid #ddd9d2;
-            border-radius: 14px;
-            background: #fff;
-          }
+        <WorkDetailEditor initialItem={item} teamOptions={teamOptions} />
 
-          .work-not-found-card p {
-            margin: 0 0 18px;
-          }
-        `}</style>
+        <style>{toolbarStyles}</style>
       </AdminShell>
     );
   }
@@ -90,7 +90,15 @@ export default async function WorkDetailPage({ params }) {
           ← Back to Work Intake
         </Link>
 
-        <span className="work-detail-status">{item.status || "Unassigned"}</span>
+        <div className="work-detail-actions">
+          <span className="work-detail-status">{item.status || "Unassigned"}</span>
+          <Link
+            className="admin-btn admin-btn-primary"
+            href={`/admin/tasks/${item.id}?edit=1`}
+          >
+            Edit Work
+          </Link>
+        </div>
       </div>
 
       <section className="work-detail-card">
@@ -108,10 +116,7 @@ export default async function WorkDetailPage({ params }) {
 
         <div className="work-detail-grid">
           <Detail label="Owner" value={item.assignee || "Unassigned"} />
-          <Detail
-            label="Request Date"
-            value={safeFormatDate(item.start_date)}
-          />
+          <Detail label="Request Date" value={safeFormatDate(item.start_date)} />
           <Detail
             label="Delivery Deadline"
             value={safeFormatDate(item.due_date)}
@@ -121,14 +126,59 @@ export default async function WorkDetailPage({ params }) {
             value={formatTurnaround(item.turnaround_days)}
           />
           <Detail
-            label="Deliverable Format"
-            value={item.required_file_type || "Not specified"}
+            label="Deliverables"
+            value={formatDeliverableCount(item.required_file_type)}
+          />
+
+          <Detail
+            label="Work From"
+            value={formatWorkFrom(item.work_from, teamOptions)}
           />
           <Detail
             label="Rate"
             value={formatRate(item.rate_currency, item.rate_amount)}
           />
         </div>
+
+        {parseDeliverables(item.required_file_type).length ? (
+          <div className="work-detail-section">
+            <p className="work-detail-label">Required Deliverables</p>
+
+            <div className="deliverable-view-list">
+              {parseDeliverables(item.required_file_type).map(
+                (deliverable, index) => (
+                  <div className="deliverable-view-row" key={index}>
+                    <div className="deliverable-view-number">
+                      {String(index + 1).padStart(2, "0")}
+                    </div>
+
+                    <div className="deliverable-view-main">
+                      <strong>
+                        {deliverable.name || `Deliverable ${index + 1}`}
+                      </strong>
+
+                      <div className="deliverable-view-meta">
+                        {deliverable.format ? (
+                          <span>{deliverable.format}</span>
+                        ) : null}
+                        {deliverable.ratio ? (
+                          <span>{deliverable.ratio}</span>
+                        ) : null}
+                        {deliverable.quantity ? (
+                          <span>Qty {deliverable.quantity}</span>
+                        ) : null}
+                      </div>
+
+                      {deliverable.notes ? (
+                        <small>{deliverable.notes}</small>
+                      ) : null}
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        ) : null}
 
         <div className="work-detail-section">
           <p className="work-detail-label">Client Brief</p>
@@ -192,33 +242,13 @@ export default async function WorkDetailPage({ params }) {
               ))}
             </div>
           ) : (
-            <p className="work-detail-empty">
-              No client files or references.
-            </p>
+            <p className="work-detail-empty">No client files or references.</p>
           )}
         </div>
       </section>
 
       <style>{`
-        .work-detail-toolbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 14px;
-          margin-bottom: 18px;
-        }
-
-        .work-detail-status {
-          display: inline-flex;
-          align-items: center;
-          min-height: 34px;
-          padding: 0 13px;
-          border: 1px solid #d8d4cd;
-          border-radius: 999px;
-          background: #fff;
-          font-size: 12px;
-          font-weight: 700;
-        }
+        ${toolbarStyles}
 
         .work-detail-card {
           overflow: hidden;
@@ -269,7 +299,6 @@ export default async function WorkDetailPage({ params }) {
           font-size: 10px;
           font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: .05em;
         }
 
         .work-detail-grid {
@@ -318,60 +347,105 @@ export default async function WorkDetailPage({ params }) {
           white-space: pre-wrap;
         }
 
+        .deliverable-view-list {
+          display: grid;
+          gap: 9px;
+        }
+
+        .deliverable-view-row {
+          display: grid;
+          grid-template-columns: 42px minmax(0, 1fr);
+          gap: 12px;
+          align-items: start;
+          padding: 13px 14px;
+          border: 1px solid #ddd8d0;
+          border-radius: 11px;
+          background: #fff;
+        }
+
+        .deliverable-view-number {
+          width: 42px;
+          height: 42px;
+          display: grid;
+          place-items: center;
+          border-radius: 9px;
+          background: #f0eeea;
+          color: #625d56;
+          font-size: 11px;
+          font-weight: 800;
+        }
+
+        .deliverable-view-main {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .deliverable-view-main strong {
+          font-size: 14px;
+        }
+
+        .deliverable-view-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .deliverable-view-meta span {
+          display: inline-flex;
+          align-items: center;
+          min-height: 24px;
+          padding: 0 8px;
+          border-radius: 999px;
+          background: #f3f1ee;
+          color: #625d56;
+          font-size: 10px;
+          font-weight: 700;
+        }
+
+        .deliverable-view-main small {
+          color: #817b73;
+          line-height: 1.45;
+        }
+
         .work-link-list {
           display: grid;
-          gap: 10px;
+          gap: 9px;
         }
 
         .work-link-card {
           display: grid;
           grid-template-columns: auto minmax(0, 1fr) auto;
           align-items: center;
-          gap: 14px;
-          padding: 13px 14px;
+          gap: 13px;
+          padding: 12px 13px;
           border: 1px solid #ddd8d0;
-          border-radius: 12px;
+          border-radius: 11px;
           background: #fff;
           color: inherit;
           text-decoration: none;
-          transition:
-            border-color .15s ease,
-            background .15s ease,
-            transform .15s ease;
-        }
-
-        .work-link-card:hover {
-          transform: translateY(-1px);
-          border-color: #bdb7af;
-          background: #faf9f7;
         }
 
         .work-resource-visual {
-          width: 48px;
-          height: 48px;
-          flex: 0 0 48px;
+          width: 46px;
+          height: 46px;
           display: grid;
           place-items: center;
           overflow: hidden;
-          border-radius: 10px;
+          border-radius: 9px;
           background: #f0eeea;
-          color: #4a4640;
         }
 
         .work-resource-visual svg {
-          width: 19px;
-          height: 19px;
-        }
-
-        .work-resource-visual.is-image {
-          background: #e8e5df;
+          width: 18px;
+          height: 18px;
         }
 
         .work-resource-visual img {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          display: block;
         }
 
         .work-link-copy {
@@ -385,18 +459,11 @@ export default async function WorkDetailPage({ params }) {
           color: #8c867e;
           font-size: 9px;
           font-weight: 700;
-          letter-spacing: .09em;
           text-transform: uppercase;
-        }
-
-        .work-link-copy strong {
-          font-size: 14px;
-          line-height: 1.3;
         }
 
         .work-link-copy small {
           overflow: hidden;
-          max-width: 620px;
           color: #817b73;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -410,7 +477,6 @@ export default async function WorkDetailPage({ params }) {
           border: 1px solid #ddd8d0;
           border-radius: 9px;
           background: #faf9f7;
-          color: #333;
         }
 
         .work-link-open svg {
@@ -424,9 +490,7 @@ export default async function WorkDetailPage({ params }) {
         }
 
         @media (max-width: 760px) {
-          .work-detail-header,
-          .work-detail-toolbar {
-            align-items: stretch;
+          .work-detail-header {
             flex-direction: column;
           }
 
@@ -443,33 +507,58 @@ export default async function WorkDetailPage({ params }) {
           .work-detail-grid {
             grid-template-columns: 1fr;
           }
-
-          .work-link-card {
-            grid-template-columns: auto minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 11px;
-          }
-
-          .work-resource-visual {
-            width: 44px;
-            height: 44px;
-            flex-basis: 44px;
-          }
-
-          .work-link-copy small {
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-
-          .work-link-open {
-            width: 32px;
-            height: 32px;
-          }
         }
       `}</style>
     </AdminShell>
+  );
+}
+
+const toolbarStyles = `
+  .work-detail-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .work-detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .work-detail-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 13px;
+    border: 1px solid #d8d4cd;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 650px) {
+    .work-detail-toolbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .work-detail-actions {
+      display: grid;
+      grid-template-columns: auto 1fr;
+    }
+  }
+`;
+
+function Detail({ label, value }) {
+  return (
+    <div className="work-detail-cell">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
 
@@ -500,7 +589,6 @@ function OpenIcon() {
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
       <path
         d="m19 5-8 8"
@@ -512,20 +600,61 @@ function OpenIcon() {
         d="M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"
         stroke="currentColor"
         strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );
 }
 
-function Detail({ label, value }) {
-  return (
-    <div className="work-detail-cell">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
+function parseDeliverables(value) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+
+  try {
+    const parsed = JSON.parse(text);
+
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map((item) => ({
+          name: String(item.name || ""),
+          format: String(item.format || ""),
+          ratio: String(item.ratio || ""),
+          quantity: String(item.quantity || "1"),
+          notes: String(item.notes || ""),
+        }))
+        .filter(
+          (item) => item.name || item.format || item.ratio || item.notes
+        );
+    }
+  } catch {
+    // Legacy field becomes one deliverable.
+  }
+
+  return [
+    {
+      name: "Primary Deliverable",
+      format: text,
+      ratio: "",
+      quantity: "1",
+      notes: "",
+    },
+  ];
+}
+
+function formatDeliverableCount(value) {
+  const items = parseDeliverables(value);
+  if (!items.length) return "Not specified";
+  return `${items.length} deliverable${items.length === 1 ? "" : "s"}`;
+}
+
+function formatWorkFrom(value, teamOptions) {
+  const slugs = Array.isArray(value) ? value : [];
+  if (!slugs.length) return "Any team member";
+
+  const names = slugs
+    .map((slug) => teamOptions.find((member) => member.slug === slug)?.name)
+    .filter(Boolean);
+
+  return names.length ? names.join(", ") : "Selected team members";
 }
 
 function parseAttachmentItems(value) {
@@ -545,7 +674,7 @@ function parseAttachmentItems(value) {
         .filter((item) => item.url);
     }
   } catch {
-    // Legacy text is handled below.
+    // Legacy links are handled below.
   }
 
   const matches =
@@ -565,15 +694,10 @@ function parseAttachmentItems(value) {
 }
 
 function cleanUrl(value) {
-  const raw = String(value || "")
-    .trim()
-    .replace(/[)\]}>.,;]+$/g, "");
-
+  const raw = String(value || "").trim();
   if (!raw) return "";
 
-  const normalized = /^https?:\/\//i.test(raw)
-    ? raw
-    : `https://${raw}`;
+  const normalized = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
 
   try {
     return new URL(normalized).toString();
@@ -595,10 +719,7 @@ function safeFormatDate(value) {
   if (!value) return "Not set";
 
   const date = new Date(`${value}T00:00:00`);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Not set";
-  }
+  if (Number.isNaN(date.getTime())) return "Not set";
 
   return new Intl.DateTimeFormat("en-PH", {
     month: "short",
@@ -608,16 +729,9 @@ function safeFormatDate(value) {
 }
 
 function formatTurnaround(value) {
-  if (value === null || value === undefined || value === "") {
-    return "Not set";
-  }
-
+  if (value === null || value === undefined || value === "") return "Not set";
   const days = Number(value);
-
-  if (!Number.isFinite(days)) {
-    return "Not set";
-  }
-
+  if (!Number.isFinite(days)) return "Not set";
   return `${days} day${days === 1 ? "" : "s"}`;
 }
 
@@ -627,10 +741,7 @@ function formatRate(currency, amount) {
   }
 
   const numeric = Number(amount);
-
-  if (!Number.isFinite(numeric)) {
-    return "Not set";
-  }
+  if (!Number.isFinite(numeric)) return "Not set";
 
   const code = currency === "USD" ? "USD" : "PHP";
 

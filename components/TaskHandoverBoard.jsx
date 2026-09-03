@@ -239,6 +239,7 @@ export default function TaskHandoverBoard({
         {showCreate ? (
           <ProjectForm
             form={form}
+            teamOptions={teamOptions}
             updateField={(field, value) => updateForm(field, value)}
             onSubmit={createProject}
             onCancel={() => setShowCreate(false)}
@@ -259,6 +260,7 @@ export default function TaskHandoverBoard({
                   <div className="edit-panel">
                     <ProjectForm
                       form={editForm}
+                      teamOptions={teamOptions}
                       updateField={(field, value) =>
                         updateForm(field, value, true)
                       }
@@ -582,6 +584,7 @@ export default function TaskHandoverBoard({
                         <div className="person-edit-panel">
                           <ProjectForm
                             form={editForm}
+                            teamOptions={teamOptions}
                             updateField={(field, value) =>
                               updateForm(field, value, true)
                             }
@@ -1654,6 +1657,7 @@ export default function TaskHandoverBoard({
 
 function ProjectForm({
   form,
+  teamOptions = [],
   updateField,
   onSubmit,
   onCancel,
